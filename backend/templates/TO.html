@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <title>Создание заявки — ТехОбслуживание</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="Styles.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Styles.css') }}">
 </head>
 <body>
   <div class="form-container">
     <h2>Создание заявки на ТО</h2>
-   <form class="request-form" method="POST" action="/create-request">
+    <form class="request-form" method="POST" action="{{ url_for('create_request') }}">
       <fieldset>
         <legend>Данные о клиенте</legend>
         <label>Название организации:
@@ -28,6 +28,7 @@
           <input type="text" name="address" required>
         </label>
       </fieldset>
+
       <fieldset>
         <legend>Данные об оборудовании</legend>
         <label>Название:
@@ -48,18 +49,19 @@
           </select>
         </label>
       </fieldset>
+
       <fieldset>
         <legend>Информация о заявке</legend>
         <label>Описание проблемы:
           <textarea name="problem" rows="4" required></textarea>
         </label>
       </fieldset>
+
       <div class="form-actions">
         <button type="submit" class="submit-btn"><i class="fas fa-save"></i> Сохранить заявку</button>
-        <a href="Планирование работ.html" class="cancel-btn"><i class="fas fa-arrow-left"></i> Назад</a>
+        <a href="{{ url_for('work_planning') }}" class="cancel-btn"><i class="fas fa-arrow-left"></i> Назад</a>
       </div>
     </form>
   </div>
 </body>
 </html>
-    
