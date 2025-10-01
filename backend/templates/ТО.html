@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Создание заявки — ТехОбслуживание</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="Styles.css">
+</head>
+<body>
+  <div class="form-container">
+    <h2>Создание заявки на ТО</h2>
+    <form class="request-form">
+      <fieldset>
+        <legend>Данные о клиенте</legend>
+        <label>Название организации:
+          <input type="text" name="company" required>
+        </label>
+        <label>Контактное лицо (ФИО):
+          <input type="text" name="contact" required>
+        </label>
+        <label>Телефон:
+          <input type="tel" name="phone" required>
+        </label>
+        <label>Email:
+          <input type="email" name="email" required>
+        </label>
+        <label>Адрес:
+          <input type="text" name="address" required>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Данные об оборудовании</legend>
+        <label>Название:
+          <input type="text" name="equipment" required>
+        </label>
+        <label>Дата установки:
+          <input type="date" name="install_date">
+        </label>
+        <label>Место установки:
+          <input type="text" name="location">
+        </label>
+        <label>Статус:
+          <select name="equipment_status">
+            <option value="в эксплуатации">В эксплуатации</option>
+            <option value="неисправно">Неисправно</option>
+            <option value="в ремонте">В ремонте</option>
+            <option value="выведено из эксплуатации">Выведено из эксплуатации</option>
+          </select>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Информация о заявке</legend>
+        <label>Описание проблемы:
+          <textarea name="problem" rows="4" required></textarea>
+        </label>
+      </fieldset>
+      <div class="form-actions">
+        <button type="submit" class="submit-btn"><i class="fas fa-save"></i> Сохранить заявку</button>
+        <a href="Планирование работ.html" class="cancel-btn"><i class="fas fa-arrow-left"></i> Назад</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
+    
