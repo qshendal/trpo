@@ -25,7 +25,13 @@ def create_request():
     cur.execute("""
         INSERT INTO client (название_организации, контактное_лицо, телефон, email, адрес)
         VALUES (?, ?, ?, ?, ?)
-    """, (form["org"], form["contact"], form["phone"], form["email"], form["address"]))
+    """, (
+        form["company"],
+        form["contact"],
+        form["phone"],
+        form["email"],
+        form["address"]
+    ))
     client_id = cur.lastrowid
 
     # Вставка оборудования
@@ -37,7 +43,7 @@ def create_request():
         form["equipment"],
         form["install_date"],
         form["location"],
-        form["status"]
+        form["equipment_status"]
     ))
     equipment_id = cur.lastrowid
 
@@ -45,12 +51,15 @@ def create_request():
     cur.execute("""
         INSERT INTO service_request (equipment_id, дата_заявки, описание_проблемы, статус)
         VALUES (?, DATE('now'), ?, ?)
-    """, (equipment_id, form["problem"], "новая"))
+    """, (
+        equipment_id,
+        form["problem"],
+        "новая"
+    ))
 
     conn.commit()
     conn.close()
-
-    return "", 204
+    return "", 204  # Можно заменить на redirect или сообщение
 
 if __name__ == "__main__":
     app.run(debug=True)
