@@ -23,10 +23,6 @@ def equipment_registry():
 def work_planning():
     return render_template("planning.html")
 
-@app.route("/inventory")
-def inventory():
-    return render_template("inventory.html")
-
 @app.route("/reports")
 def reports():
     return render_template("reports.html")
