@@ -11,9 +11,17 @@ def get_db():
     return conn
 
 @app.route("/")
-@app.route("/dashboard")
 def dashboard():
     return render_template("dashboard.html")
+
+@app.route("/registration")
+def registration():
+    return render_template("registration.html")
+
+@app.route("/register", methods=["POST"])
+def register():
+    # Здесь логика регистрации: сохранить пользователя, проверить email, хешировать пароль и т.д.
+    return redirect(url_for("dashboard"))  # или куда тебе нужно
 
 @app.route("/equipment-registry")
 def equipment_registry():
@@ -60,21 +68,21 @@ def create_request():
             form.get("location"),
             form.get("equipment_status")
         ))
-        equipment_id = cur.lastrowid
 
         cur.execute("""
-            INSERT INTO service_request (equipment_id, дата_заявки, описание_проблемы, статус)
-            VALUES (?, DATE('now'), ?, ?)
+            INSERT INTO service_request (client_id, дата_заявки, описание_проблемы, статус, место_ремонта)
+            VALUES (?, DATE('now'), ?, ?, ?)
         """, (
-            equipment_id,
+            client_id,
             form.get("problem"),
-            "новая"
+            "новая",
+            form.get("location")
         ))
 
         conn.commit()
     except Exception as e:
-        print("Ошибка при вставке:", e)
         conn.rollback()
+        return f"Ошибка при вставке: {e}"
     finally:
         conn.close()
 
