@@ -3,50 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <title>Регистрация | Авторизация — ТехОбслуживание</title>
-  <link rel="stylesheet" href="Registred.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='Registred.css') }}" />
 </head>
 <body>
   <div class="page-wrapper">
     <div class="auth-shell" id="authShell">
       <div class="auth-box auth-register">
-        <form id="regForm" action="#">
+        <form id="regForm" method="POST" action="#">
           <h1 class="auth-title">Создать аккаунт</h1>
 
           <div class="auth-field">
-            <input type="text" id="regName" class="auth-input" placeholder=" " required />
+            <input type="text" name="name" id="regName" class="auth-input" placeholder=" " required />
             <label for="regName" class="auth-label">Имя</label>
           </div>
 
           <div class="auth-field">
-            <input type="email" id="regEmail" class="auth-input" placeholder=" " required />
+            <input type="email" name="email" id="regEmail" class="auth-input" placeholder=" " required />
             <label for="regEmail" class="auth-label">Email</label>
           </div>
 
           <div class="auth-field">
-            <input type="password" id="regPass" class="auth-input" placeholder=" " required />
+            <input type="password" name="password" id="regPass" class="auth-input" placeholder=" " required />
             <label for="regPass" class="auth-label">Пароль</label>
           </div>
 
-          <button class="auth-button">Зарегистрироваться</button>
+          <button type="submit" class="auth-button">Зарегистрироваться</button>
         </form>
       </div>
 
       <div class="auth-box auth-login">
-        <form action="#">
+        <form method="POST" action="#">
           <h1 class="auth-title">Вход</h1>
 
           <div class="auth-field large">
-            <input type="email" id="loginEmail" class="auth-input" placeholder=" " required />
+            <input type="email" name="email" id="loginEmail" class="auth-input" placeholder=" " required />
             <label for="loginEmail" class="auth-label">Email</label>
           </div>
 
           <div class="auth-field large">
-            <input type="password" id="loginPass" class="auth-input" placeholder=" " required />
+            <input type="password" name="password" id="loginPass" class="auth-input" placeholder=" " required />
             <label for="loginPass" class="auth-label">Пароль</label>
           </div>
 
           <a href="#" class="auth-forgot">Забыли пароль?</a>
-          <button class="auth-button short">Войти</button>
+          <button type="submit" class="auth-button short">Войти</button>
         </form>
       </div>
 
@@ -67,6 +68,6 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

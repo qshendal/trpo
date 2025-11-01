@@ -20,7 +20,6 @@ def registration():
 
 @app.route("/register", methods=["POST"])
 def register():
-    # Здесь логика регистрации: сохранить пользователя, проверить email, хешировать пароль и т.д.
     return redirect(url_for("dashboard"))  # или куда тебе нужно
 
 @app.route("/equipment-registry")
