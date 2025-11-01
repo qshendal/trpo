@@ -1,0 +1,157 @@
+/* Сброс и базовые стили */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f6fa;
+  color: #333;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Контейнер */
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Сайдбар */
+.sidebar {
+  width: 240px;
+  background-color: #182e47;
+  color: #fff;
+  padding: 20px;
+}
+
+.logo {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #ccc;
+  margin-bottom: 30px;
+}
+
+.menu ul {
+  list-style: none;
+}
+
+.menu li {
+  padding: 10px 0;
+  font-size: 16px;
+}
+
+.menu li.active,
+.menu li:hover {
+  background-color: #2c4a70;
+  padding-left: 10px;
+  border-radius: 4px;
+}
+
+.menu a {
+  display: block;
+  color: inherit;
+}
+
+/* Основная панель */
+.dashboard {
+  flex: 1;
+  padding: 15px;
+}
+
+/* Верхняя панель */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  margin-bottom: 0;
+}
+
+.top-bar h2 {
+  font-size: 20px;
+}
+
+/* Секция карточек */
+.task-section {
+  display: flex;
+  gap: 20px;
+  flex-wrap: nowrap;
+  padding: 20px 24px;
+}
+
+/* Карточка */
+.task-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 400px;
+  height: 100px;
+}
+
+/* Левая часть карточки */
+.task-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 65px;
+}
+/* Заголовок */
+.task-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #182e47;
+  margin-bottom: 6px;
+}
+
+/* Счётчик */
+.task-count {
+  font-size: 20px;
+  font-weight: bold;
+  color: #182e47;
+}
+
+/* Иконка */
+.task-icon {
+  font-size: 28px;
+}
+
+/* Кнопка */
+.action-btn {
+  background-color: #f7fbff;
+  color: #000000;
+  border: 1px solid #9a9c9e;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-block;       /* заменено с inline-flex */
+  white-space: nowrap;         /* запрет на перенос текста */
+  max-width: none;             /* убрано ограничение */
+  height: auto;                /* авто-высота */
+  line-height: 1.2;            /* плотнее текст */
+}
+.action-btn:hover {
+  background-color: #e0e0e0;
+}

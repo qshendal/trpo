@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Регистрация | Авторизация — ТехОбслуживание</title>
+  <link rel="stylesheet" href="Registred.css" />
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="auth-shell" id="authShell">
+      <div class="auth-box auth-register">
+        <form id="regForm" action="#">
+          <h1 class="auth-title">Создать аккаунт</h1>
+
+          <div class="auth-field">
+            <input type="text" id="regName" class="auth-input" placeholder=" " required />
+            <label for="regName" class="auth-label">Имя</label>
+          </div>
+
+          <div class="auth-field">
+            <input type="email" id="regEmail" class="auth-input" placeholder=" " required />
+            <label for="regEmail" class="auth-label">Email</label>
+          </div>
+
+          <div class="auth-field">
+            <input type="password" id="regPass" class="auth-input" placeholder=" " required />
+            <label for="regPass" class="auth-label">Пароль</label>
+          </div>
+
+          <button class="auth-button">Зарегистрироваться</button>
+        </form>
+      </div>
+
+      <div class="auth-box auth-login">
+        <form action="#">
+          <h1 class="auth-title">Вход</h1>
+
+          <div class="auth-field large">
+            <input type="email" id="loginEmail" class="auth-input" placeholder=" " required />
+            <label for="loginEmail" class="auth-label">Email</label>
+          </div>
+
+          <div class="auth-field large">
+            <input type="password" id="loginPass" class="auth-input" placeholder=" " required />
+            <label for="loginPass" class="auth-label">Пароль</label>
+          </div>
+
+          <a href="#" class="auth-forgot">Забыли пароль?</a>
+          <button class="auth-button short">Войти</button>
+        </form>
+      </div>
+
+      <div class="auth-toggle">
+        <div class="auth-toggle-inner">
+          <div class="auth-panel auth-panel-left">
+            <h2>С возвращением!</h2>
+            <p>Введите свои данные для входа и продолжите работу</p>
+            <button class="auth-switch" id="showLogin">Войти</button>
+          </div>
+          <div class="auth-panel auth-panel-right">
+            <h2>Приветствуем на сайте ТехОбслуживания!</h2>
+            <p>Зарегистрируйтесь, чтобы получить доступ ко всем функциям</p>
+            <button class="auth-switch" id="showRegister">Регистрация</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

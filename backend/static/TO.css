@@ -1,0 +1,85 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f6fa;
+  color: #333;
+}
+
+.form-container {
+  max-width: 800px;
+  margin: 10px auto;
+  background: #fff;
+  padding: 60px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.form-container h2 {
+  margin-bottom: 40px;
+  font-size: 24px;
+  color: #000000;
+}
+.request-form fieldset {
+  border: 1px solid #ddd;
+  padding: 20px;
+  margin-bottom: 40px;
+  border-radius: 6px;
+}
+
+.request-form legend {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #1f3b5c;
+}
+
+.request-form label {
+  display: block;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.request-form input,
+.request-form select,
+.request-form textarea {
+  width: 100%;
+  padding: 6px 10px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.submit-btn,
+.cancel-btn {
+  background-color: #2ecc71;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cancel-btn {
+  background-color: #ccc;
+  color: #333;  
+}
+
+.submit-btn:hover {
+  background-color: #27ae60;
+}
+
+.cancel-btn:hover {
+  background-color: #bbb;
+}

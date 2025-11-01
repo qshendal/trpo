@@ -1,0 +1,244 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap");
+
+/* Обёртка страницы */
+.page-wrapper {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, #e2e2e2, #c9d6ff);
+  font-family: "Montserrat", sans-serif;
+}
+
+/* Основной контейнер */
+.auth-shell {
+  position: relative;
+  width: 768px;
+  max-width: 100%;
+  min-height: 480px;
+  background-color: #fff;
+  border-radius: 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+/* Блоки форм */
+.auth-box {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  padding: 0 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.6s ease-in-out;
+  background-color: #fff;
+}
+
+.auth-register {
+  left: 0;
+  opacity: 0;
+  z-index: 1;
+}
+
+.auth-login {
+  left: 0;
+  z-index: 2;
+}
+
+.auth-shell.active .auth-register {
+  transform: translateX(100%);
+  opacity: 1;
+  z-index: 5;
+  animation: fadeIn 0.6s;
+}
+
+.auth-shell.active .auth-login {
+  transform: translateX(100%);
+}
+
+/* Анимация */
+@keyframes fadeIn {
+  0%, 49.99% {
+    opacity: 0;
+    z-index: 1;
+  }
+  50%, 100% {
+    opacity: 1;
+    z-index: 5;
+  }
+}
+
+/* Заголовки */
+.auth-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* Поля ввода с floating outlined */
+.auth-field {
+  position: relative;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.auth-field.large {
+  width: 110%;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 18px 12px 10px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  background: transparent;
+}
+
+.auth-label {
+  position: absolute;
+  top: 18px;
+  left: 12px;
+  font-size: 15px;
+  color: #777;
+  background-color: #fff;
+  padding: 0 6px;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.auth-field.active .auth-label {
+  top: -8px;
+  font-size: 12px;
+  color: #182e47;
+}
+
+/* Ссылка "Забыли пароль?" */
+.auth-forgot {
+  font-size: 12px;
+  color: #182e47;
+  text-decoration: none;
+  margin: 10px 0;
+}
+
+/* Кнопки */
+.auth-button {
+  background-color: #182e47;
+  color: #fff;
+  font-size: 12px;
+  padding: 10px 45px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.auth-button:hover {
+  background-color: #182e47;
+}
+
+.auth-button.short {
+  width: 140px;
+}
+
+/* Кнопки переключения */
+.auth-switch {
+  background-color: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+  font-size: 12px;
+  padding: 10px 45px;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+/* Переключение */
+.auth-toggle {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  transition: all 0.6s ease-in-out;
+  z-index: 1000;
+  border-radius: 150px 0 0 100px;
+}
+
+.auth-shell.active .auth-toggle {
+  transform: translateX(-100%);
+  border-radius: 0 150px 100px 0;
+}
+
+.auth-toggle-inner {
+  background-color: #182e47;  color: #fff;
+  height: 100%;
+  width: 200%;
+  position: relative;
+  left: -100%;
+  display: flex;
+  transition: all 0.6s ease-in-out;
+}
+
+.auth-shell.active .auth-toggle-inner {
+  transform: translateX(50%);
+}
+
+.auth-panel {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 30px;
+  text-align: center;
+  transition: all 0.6s ease-in-out;
+}
+
+.auth-panel h2 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.auth-panel p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.auth-panel-left {
+  transform: translateX(-200%);
+}
+
+.auth-shell.active .auth-panel-left {
+  transform: translateX(0);
+}
+
+.auth-panel-right {
+  right: 0;
+  transform: translateX(0);
+}
+
+.auth-shell.active .auth-panel-right {
+  transform: translateX(200%);
+}
