@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>ТехОбслуживание — Панель управления</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="{{ url_for('static', filename='Panel.css') }}">
+  <link rel="stylesheet" href="Panel.css">
 </head>
 <body>
   <div class="container">
@@ -13,10 +13,10 @@
       <p class="subtitle">Управление техникой</p>
       <nav class="menu">
         <ul>
-          <li class="active"><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li><a href="{{ url_for('work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="{{ url_for('equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="{{ url_for('reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li class="active"><a href="#"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
+          <li><a href="Планирование работ.html"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
+          <li><a href="инвентарь.html"><i class="fas fa-boxes"></i> Инвентарь</a></li>
+          <li><a href="Отчеты.html"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
@@ -30,7 +30,7 @@
         <div class="task-box">
           <div class="task-info">
             <div class="task-title">Активные задачи</div>
-            <div class="task-count">0</div>
+            <div class="task-count" id="activeCount">0</div>
           </div>
           <i class="fas fa-wrench task-icon"></i>
         </div>
@@ -38,7 +38,7 @@
         <div class="task-box">
           <div class="task-info">
             <div class="task-title">Малые запасы</div>
-            <div class="task-count">0</div>
+            <div class="task-count" id="lowStockCount">0</div>
           </div>
           <i class="fas fa-box-open task-icon" style="color: #e67e22;"></i>
         </div>
@@ -46,7 +46,7 @@
         <div class="task-box">
           <div class="task-info">
             <div class="task-title">Расходы за месяц</div>
-            <div class="task-count">0</div>
+            <div class="task-count" id="monthlyExpenses">0</div>
           </div>
           <i class="fas fa-money-bill-wave task-icon" style="color: #27ae60;"></i>
         </div>
@@ -54,28 +54,107 @@
         <div class="task-box">
           <div class="task-info">
             <div class="task-title">Мастера</div>
-            <div class="task-count">0</div>
+            <div class="task-count" id="technicianCount">0</div>
           </div>
           <i class="fas fa-user-cog task-icon" style="color: #3498db;"></i>
         </div>
       </section>
 
       <section class="task-section">
-        <div class="task-box">
+        <div class="task-box task-full">
           <div class="task-header">
             <div class="task-title">Текущие задачи обслуживания</div>
             <button class="action-btn">Показать всё</button>
           </div>
+          <div class="task-inner-cards" id="maintenanceTasks">
+            <!-- Вложенные карточки задач -->
+          </div>
         </div>
 
-        <div class="task-box">
+        <div class="task-box task-full">
           <div class="task-header">
             <div class="task-title">Уведомления о малых запасах</div>
             <button class="action-btn">Управление складом</button>
+          </div>
+          <div class="task-inner-cards" id="lowStockAlerts">
+            <!-- Вложенные карточки запасов -->
           </div>
         </div>
       </section>
     </main>
   </div>
+
+  <script>
+  function addTaskCard({ name, type, deadline, priorityText, priorityClass }) {
+  const card = document.createElement('div');
+  card.className = 'task-subcard';
+
+  const left = document.createElement('div');
+  left.className = 'task-subcard-left';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'task-name';
+  nameEl.textContent = name;
+  left.appendChild(nameEl);
+
+  const typeEl = document.createElement('div');
+  typeEl.className = 'task-type';
+  typeEl.textContent = type;
+  left.appendChild(typeEl);
+
+  const deadlineEl = document.createElement('div');
+  deadlineEl.className = 'task-deadline';
+  deadlineEl.textContent = deadline;
+  left.appendChild(deadlineEl);
+
+  const right = document.createElement('div');
+  right.className = 'task-subcard-right';
+
+  const priorityBlock = document.createElement('div');
+  priorityBlock.className = `task-priority ${priorityClass}`;
+  priorityBlock.textContent = priorityText;
+  right.appendChild(priorityBlock);
+
+  card.appendChild(left);
+  card.appendChild(right);
+
+  document.getElementById('maintenanceTasks').appendChild(card);
+}
+  function addStockCard({ item, current, minimum }) {
+  const card = document.createElement('div');
+  card.className = 'task-subcard';
+
+  const left = document.createElement('div');
+  left.className = 'task-subcard-left';
+
+  const itemEl = document.createElement('div');
+  itemEl.className = 'task-name';
+  itemEl.textContent = item;
+  left.appendChild(itemEl);
+
+  const currentEl = document.createElement('div');
+  currentEl.className = 'task-type';
+  currentEl.textContent = `Текущий запас: ${current}`;
+  left.appendChild(currentEl);
+
+  const minimumEl = document.createElement('div');
+  minimumEl.className = 'task-deadline';
+  minimumEl.textContent = `Минимум: ${minimum}`;
+  left.appendChild(minimumEl);
+
+  const right = document.createElement('div');
+  right.className = 'task-item-right';
+
+  const button = document.createElement('button');
+  button.className = 'action-btn';
+  button.textContent = 'Заказать';
+  right.appendChild(button);
+
+  card.appendChild(left);
+  card.appendChild(right);
+
+  document.getElementById('lowStockAlerts').appendChild(card);
+}
+  </script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>ТехОбслуживание — Планирование работ</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="{{ url_for('static', filename='Plane.css') }}">
+  <link rel="stylesheet" href="Plane.css">
 </head>
 <body>
   <div class="container">
@@ -13,10 +13,10 @@
       <p class="subtitle">Управление техникой</p>
       <nav class="menu">
         <ul>
-          <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li class="active"><a href="{{ url_for('work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="{{ url_for('equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="{{ url_for('reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li><a href="Панель управления.html"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
+          <li class="active"><a href="Планирование работ.html"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
+          <li><a href="инвентарь.html"><i class="fas fa-boxes"></i> Инвентарь</a></li>
+          <li><a href="Отчеты.html"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
@@ -24,9 +24,34 @@
     <main class="dashboard">
       <header class="top-bar">
         <h2>Планирование работ</h2>
-        <a href="{{ url_for('create_request_form') }}" class="plan-btn"><i class="fas fa-plus-circle"></i> Запланировать ТО</a>
       </header>
-    </main>
+
+  <div class="tabs-wrapper">
+    <button class="tab-button active" data-tab="calendar">
+      📅 <span>Календарь</span>
+    </button>
+    <button class="tab-button" data-tab="requests">
+      ⚠️ <span>Заявки на обслуживание</span>
+    </button>
   </div>
-</body>
+  <script>
+    const buttons = document.querySelectorAll('.tab-button');
+    const contents = document.querySelectorAll('.tab-content');
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const target = button.getAttribute('data-tab');
+
+        buttons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        contents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === target) {
+            content.classList.add('active');
+          }
+        });
+      });
+    });
+  </script></body>
 </html>
