@@ -44,3 +44,22 @@ registerBtn.addEventListener('click', () => {
 loginBtn.addEventListener('click', () => {
   authShell.classList.remove('active');
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const loginForm = document.querySelector('.auth-login form');
+
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value.trim();
+
+    const adminEmail = 'admin@techservice.com';
+    const adminPassword = 'admin123';
+    
+    if (email === adminEmail && password === adminPassword) {
+      location.href = 'Панель управления.html';
+    } else {
+      location.href = 'пользователь.html'; // Обычный пользователь — панель действий
+    }
+  });
+});

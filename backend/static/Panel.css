@@ -91,52 +91,36 @@ a {
 
 /* Карточка */
 .task-box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   background-color: #fff;
   border-radius: 12px;
-  padding: 16px 20px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 16px 20px;
   width: 100%;
-  max-width: 400px;
-  height: 100px;
-}
-
-/* Левая часть карточки */
-.task-info {
+  max-width: 500px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 12px;
 }
+
+.task-box.task-full {
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: none;
+}
+
 .task-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-  gap: 65px;
+  gap: 25px;
 }
-/* Заголовок */
+
 .task-title {
   font-size: 14px;
   font-weight: 600;
   color: #182e47;
-  margin-bottom: 6px;
 }
 
-/* Счётчик */
-.task-count {
-  font-size: 20px;
-  font-weight: bold;
-  color: #182e47;
-}
-
-/* Иконка */
-.task-icon {
-  font-size: 28px;
-}
-
-/* Кнопка */
 .action-btn {
   background-color: #f7fbff;
   color: #000000;
@@ -146,12 +130,72 @@ a {
   font-weight: bold;
   border-radius: 8px;
   cursor: pointer;
-  display: inline-block;       /* заменено с inline-flex */
-  white-space: nowrap;         /* запрет на перенос текста */
-  max-width: none;             /* убрано ограничение */
-  height: auto;                /* авто-высота */
-  line-height: 1.2;            /* плотнее текст */
+  white-space: nowrap;
+  line-height: 1.2;
 }
+
 .action-btn:hover {
   background-color: #e0e0e0;
+}
+
+/* Вложенные карточки задач */
+.task-inner-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.task-subcard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f7fbff;
+  border: 1px solid #d0d4d8;
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.task-subcard-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.task-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #182e47;
+}
+
+.task-type,
+.task-deadline {
+  font-size: 12px;
+  color: #555;
+}
+
+.task-priority {
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.task-priority.high {
+  background-color: #ffe5e5;
+  color: #d10000;
+}
+.task-priority.medium {
+  background-color: #fff3cd;
+  color: #856404;
+}
+.task-priority.critical {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+.task-priority.low {
+  background-color: #e6f7ff;
+  color: #0077b6;
 }
