@@ -1,65 +1,71 @@
-const form = document.getElementById("regForm");
-
-form.addEventListener("submit", function (e) {
-  const pwd = document.getElementById("password").value;
-  const confirm = document.getElementById("confirm").value;
-  if (pwd !== confirm) {
-    e.preventDefault();
-    alert("Пароли не совпадают. Проверьте ввод.");
-  }
-});
-
-function togglePassword() {
-  const pwd = document.getElementById("password");
-  const confirm = document.getElementById("confirm");
-  const type = pwd.type === "password" ? "text" : "password";
-  pwd.type = type;
-  confirm.type = type;
-}
-document.querySelectorAll(".auth-field").forEach(field => {
-  const input = field.querySelector(".auth-input");
-
-  input.addEventListener("focus", () => {
-    field.classList.add("active");
-  });
-
-  input.addEventListener("blur", () => {
-    if (input.value.trim() === "") {
-      field.classList.remove("active");
-    }
-  });
-
-  if (input.value.trim() !== "") {
-    field.classList.add("active");
-  }
-});
-const authShell = document.getElementById('authShell');
-const registerBtn = document.getElementById('showRegister');
-const loginBtn = document.getElementById('showLogin');
-
-registerBtn.addEventListener('click', () => {
-  authShell.classList.add('active');
-});
-
-loginBtn.addEventListener('click', () => {
-  authShell.classList.remove('active');
-});
 document.addEventListener('DOMContentLoaded', () => {
-  const loginForm = document.querySelector('.auth-login form');
+  // === Проверка совпадения паролей при регистрации ===
+  const regForm = document.getElementById("regForm");
+  if (regForm) {
+    regForm.addEventListener("submit", (e) => {
+      const password = document.getElementById("regPass").value;
+      const confirm = document.getElementById("confirm").value;
+      if (password !== confirm) {
+        e.preventDefault();
+        alert("Пароли не совпадают. Проверьте ввод.");
+      }
+    });
+  }
 
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  // === Переключение видимости пароля ===
+  window.togglePassword = () => {
+    const password = document.getElementById("regPass");
+    const confirm = document.getElementById("confirm");
+    const type = password.type === "password" ? "text" : "password";
+    password.type = type;
+    confirm.type = type;
+  };
 
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPass').value.trim();
+  // === Анимация полей ввода ===
+  document.querySelectorAll(".auth-field").forEach(field => {
+    const input = field.querySelector(".auth-input");
 
-    const adminEmail = 'admin@techservice.com';
-    const adminPassword = 'admin123';
-    
-    if (email === adminEmail && password === adminPassword) {
-      location.href = 'Панель управления.html';
-    } else {
-      location.href = 'пользователь.html'; // Обычный пользователь — панель действий
+    input.addEventListener("focus", () => {
+      field.classList.add("active");
+    });
+
+    input.addEventListener("blur", () => {
+      if (input.value.trim() === "") {
+        field.classList.remove("active");
+      }
+    });
+
+    if (input.value.trim() !== "") {
+      field.classList.add("active");
     }
   });
+
+  // === Переключение между формами входа и регистрации ===
+  const authShell = document.getElementById("authShell");
+  const showRegister = document.getElementById("showRegister");
+  const showLogin = document.getElementById("showLogin");
+
+  if (authShell && showRegister && showLogin) {
+    showRegister.addEventListener("click", () => {
+      authShell.classList.add("active");
+    });
+
+    showLogin.addEventListener("click", () => {
+      authShell.classList.remove("active");
+    });
+  }
+
+  // === Проверка заполнения формы входа ===
+  const loginForm = document.querySelector(".auth-login form");
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      const name = document.getElementById("loginName").value.trim();
+      const password = document.getElementById("loginPass").value.trim();
+
+      if (!name || !password) {
+        e.preventDefault();
+        alert("Введите имя и пароль.");
+      }
+    });
+  }
 });
