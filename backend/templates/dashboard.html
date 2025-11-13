@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>ТехОбслуживание — Панель управления</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="Panel.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Panel.css') }}">
 </head>
 <body>
   <div class="container">
@@ -13,10 +13,10 @@
       <p class="subtitle">Управление техникой</p>
       <nav class="menu">
         <ul>
-          <li class="active"><a href="#"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li><a href="Планирование работ.html"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="инвентарь.html"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="Отчеты.html"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li class="active"><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
+          <li><a href="{{ url_for('work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
+          <li><a href="{{ url_for('equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
+          <li><a href="{{ url_for('reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
@@ -64,97 +64,102 @@
         <div class="task-box task-full">
           <div class="task-header">
             <div class="task-title">Текущие задачи обслуживания</div>
-            <button class="action-btn">Показать всё</button>
           </div>
-          <div class="task-inner-cards" id="maintenanceTasks">
-            <!-- Вложенные карточки задач -->
-          </div>
+          <div class="task-inner-cards" id="maintenanceTasks"></div>
         </div>
 
         <div class="task-box task-full">
           <div class="task-header">
             <div class="task-title">Уведомления о малых запасах</div>
-            <button class="action-btn">Управление складом</button>
+            <button class="action-btn" onclick="window.location.href='/equipment-registry'">Управление складом</button>
           </div>
-          <div class="task-inner-cards" id="lowStockAlerts">
-            <!-- Вложенные карточки запасов -->
-          </div>
+          <div class="task-inner-cards" id="lowStockAlerts"></div>
         </div>
       </section>
     </main>
   </div>
 
   <script>
-  function addTaskCard({ name, type, deadline, priorityText, priorityClass }) {
-  const card = document.createElement('div');
-  card.className = 'task-subcard';
+    function addTaskCard({ name, type, deadline, priorityText, priorityClass }) {
+      const card = document.createElement('div');
+      card.className = 'task-subcard';
 
-  const left = document.createElement('div');
-  left.className = 'task-subcard-left';
+      const left = document.createElement('div');
+      left.className = 'task-subcard-left';
 
-  const nameEl = document.createElement('div');
-  nameEl.className = 'task-name';
-  nameEl.textContent = name;
-  left.appendChild(nameEl);
+      const nameEl = document.createElement('div');
+      nameEl.className = 'task-name';
+      nameEl.textContent = name;
+      left.appendChild(nameEl);
 
-  const typeEl = document.createElement('div');
-  typeEl.className = 'task-type';
-  typeEl.textContent = type;
-  left.appendChild(typeEl);
+      const typeEl = document.createElement('div');
+      typeEl.className = 'task-type';
+      typeEl.textContent = type;
+      left.appendChild(typeEl);
 
-  const deadlineEl = document.createElement('div');
-  deadlineEl.className = 'task-deadline';
-  deadlineEl.textContent = deadline;
-  left.appendChild(deadlineEl);
+      const deadlineEl = document.createElement('div');
+      deadlineEl.className = 'task-deadline';
+      deadlineEl.textContent = deadline;
+      left.appendChild(deadlineEl);
 
-  const right = document.createElement('div');
-  right.className = 'task-subcard-right';
+      const right = document.createElement('div');
+      right.className = 'task-subcard-right';
 
-  const priorityBlock = document.createElement('div');
-  priorityBlock.className = `task-priority ${priorityClass}`;
-  priorityBlock.textContent = priorityText;
-  right.appendChild(priorityBlock);
+      const priorityBlock = document.createElement('div');
+      priorityBlock.className = `task-priority ${priorityClass}`;
+      priorityBlock.textContent = priorityText;
+      right.appendChild(priorityBlock);
 
-  card.appendChild(left);
-  card.appendChild(right);
+      card.appendChild(left);
+      card.appendChild(right);
 
-  document.getElementById('maintenanceTasks').appendChild(card);
-}
-  function addStockCard({ item, current, minimum }) {
-  const card = document.createElement('div');
-  card.className = 'task-subcard';
+      document.getElementById('maintenanceTasks').appendChild(card);
+    }
 
-  const left = document.createElement('div');
-  left.className = 'task-subcard-left';
+      function addStockCard({ название, количество, порог }) {
+        const card = document.createElement('div');
+        card.className = 'task-subcard low-stock';
 
-  const itemEl = document.createElement('div');
-  itemEl.className = 'task-name';
-  itemEl.textContent = item;
-  left.appendChild(itemEl);
+        const left = document.createElement('div');
+        left.className = 'task-subcard-left';
 
-  const currentEl = document.createElement('div');
-  currentEl.className = 'task-type';
-  currentEl.textContent = `Текущий запас: ${current}`;
-  left.appendChild(currentEl);
+        const nameEl = document.createElement('div');
+        nameEl.className = 'task-name';
+        nameEl.textContent = название;
+        left.appendChild(nameEl);
 
-  const minimumEl = document.createElement('div');
-  minimumEl.className = 'task-deadline';
-  minimumEl.textContent = `Минимум: ${minimum}`;
-  left.appendChild(minimumEl);
+        const currentEl = document.createElement('div');
+        currentEl.className = 'task-type';
+        currentEl.textContent = `Текущий запас: ${количество}`;
+        left.appendChild(currentEl);
 
-  const right = document.createElement('div');
-  right.className = 'task-item-right';
+        const minimumEl = document.createElement('div');
+        minimumEl.className = 'task-deadline';
+        minimumEl.textContent = `Минимум: ${порог}`;
+        left.appendChild(minimumEl);
 
-  const button = document.createElement('button');
-  button.className = 'action-btn';
-  button.textContent = 'Заказать';
-  right.appendChild(button);
+        card.appendChild(left);
+        document.getElementById('lowStockAlerts').appendChild(card);
+      }
 
-  card.appendChild(left);
-  card.appendChild(right);
+    fetch('/api/active-requests')
+      .then(res => res.json())
+      .then(tasks => {
+        tasks.forEach(task => addTaskCard(task));
+      });
 
-  document.getElementById('lowStockAlerts').appendChild(card);
-}
+    fetch('/api/active-count')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('activeCount').textContent = data.count;
+      });
+
+    fetch('/api/low-stock')
+      .then(res => res.json())
+      .then(parts => {
+        document.getElementById('lowStockCount').textContent = parts.length;
+        parts.forEach(part => addStockCard(part));
+      });
   </script>
 </body>
 </html>
