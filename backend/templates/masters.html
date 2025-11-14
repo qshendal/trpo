@@ -43,13 +43,10 @@
         <label for="masterSpecialty">Специализация:</label>
         <input type="text" id="masterSpecialty" placeholder="Например: электрик" required>
 
-        <label for="assignDate">Дата назначения:</label>
-        <input type="date" id="assignDate" required>
+        <label for="assignDate">Телефон:</label>
+        <input type="test" id="assignNumber" required>
 
-        <label for="assignedTask">Работа/оборудование:</label>
-        <input type="text" id="assignedTask" placeholder="Введите задачу или оборудование" required>
-
-        <label for="masterComment">Комментарий:</label>
+        <label for="masterComment">Примечание:</label>
         <textarea id="masterComment" rows="3" placeholder="Дополнительная информация"></textarea>
 
         <div class="modal-actions">
@@ -84,14 +81,15 @@
         const payload = {
           name: document.getElementById("masterName").value,
           specialty: document.getElementById("masterSpecialty").value,
-          date: document.getElementById("assignDate").value,
-          task: document.getElementById("assignedTask").value,
+          phone: document.getElementById("assignNumber").value,
           comment: document.getElementById("masterComment").value
         };
         console.log("Данные мастера:", payload);
+
         modal.classList.add("hidden");
       });
     });
   </script>
+
 </body>
 </html>
