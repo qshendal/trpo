@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>ТехОбслуживание — Мастера</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Masters.css') }}">
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h1 class="logo">🔧 ТехОбслуживание</h1>
+      <p class="subtitle">Мастера</p>
+      <nav class="menu">
+        <ul>
+          <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
+          <li><a href="{{ url_for('work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
+          <li><a href="{{ url_for('equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
+          <li><a href="{{ url_for('masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
+          <li><a href="{{ url_for('reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="dashboard">
+      <header class="top-bar">
+        <h2>Назначение мастера</h2>
+        <button id="openMasterModal" class="assign-btn"><i class="fas fa-user-plus"></i> Назначить мастера</button>
+      </header>
+
+      <div id="mastersContainer" class="masters-list"></div>
+    </main>
+  </div>
+
+  <div id="masterModalOverlay" class="modal-overlay hidden">
+    <div class="modal-window">
+      <span class="modal-close" id="closeMasterModal">&times;</span>
+      <h2 id="modalTitle">Назначить мастера</h2>
+      <div class="modal-content">
+        <label for="masterName">ФИО мастера:</label>
+        <input type="text" id="masterName" required>
+
+        <label for="masterSpecialty">Специализация:</label>
+        <input type="text" id="masterSpecialty" placeholder="Например: электрик" required>
+
+        <label for="assignDate">Дата назначения:</label>
+        <input type="date" id="assignDate" required>
+
+        <label for="assignedTask">Работа/оборудование:</label>
+        <input type="text" id="assignedTask" placeholder="Введите задачу или оборудование" required>
+
+        <label for="masterComment">Комментарий:</label>
+        <textarea id="masterComment" rows="3" placeholder="Дополнительная информация"></textarea>
+
+        <div class="modal-actions">
+          <button id="saveMasterBtn" class="action-btn">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const modal = document.getElementById("masterModalOverlay");
+      const openBtn = document.getElementById("openMasterModal");
+      const closeBtn = document.getElementById("closeMasterModal");
+      const saveBtn = document.getElementById("saveMasterBtn");
+
+      openBtn.addEventListener("click", () => {
+        modal.classList.remove("hidden");
+      });
+
+      closeBtn.addEventListener("click", () => {
+        modal.classList.add("hidden");
+      });
+
+      window.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          modal.classList.add("hidden");
+        }
+      });
+
+      saveBtn.addEventListener("click", () => {
+        const payload = {
+          name: document.getElementById("masterName").value,
+          specialty: document.getElementById("masterSpecialty").value,
+          date: document.getElementById("assignDate").value,
+          task: document.getElementById("assignedTask").value,
+          comment: document.getElementById("masterComment").value
+        };
+        console.log("Данные мастера:", payload);
+        modal.classList.add("hidden");
+      });
+    });
+  </script>
+</body>
+</html>

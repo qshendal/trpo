@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>ТехОбслуживание — Планирование работ</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="Plane.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Plane.css') }}">
 </head>
 <body>
   <div class="container">
@@ -13,45 +12,263 @@
       <p class="subtitle">Управление техникой</p>
       <nav class="menu">
         <ul>
-          <li><a href="Панель управления.html"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li class="active"><a href="Планирование работ.html"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="инвентарь.html"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="Отчеты.html"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
+          <li><a href="{{ url_for('work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
+          <li><a href="{{ url_for('equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
+          <li><a href="{{ url_for('masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
+          <li><a href="{{ url_for('reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
-
     <main class="dashboard">
       <header class="top-bar">
         <h2>Планирование работ</h2>
       </header>
 
-  <div class="tabs-wrapper">
-    <button class="tab-button active" data-tab="calendar">
-      📅 <span>Календарь</span>
-    </button>
-    <button class="tab-button" data-tab="requests">
-      ⚠️ <span>Заявки на обслуживание</span>
-    </button>
+      <div class="tabs-wrapper">
+        <button class="tab-button active" data-tab="calendar">📅 <span>Календарь</span></button>
+        <button class="tab-button" data-tab="requests">⚠️ <span>Заявки на обслуживание</span></button>
+      </div>
+
+      <div class="tab-content active" id="calendar">
+        <div id="calendarTasks" class="calendar-tasks">
+        </div>
+      </div>
+
+      <div class="tab-content" id="requests">
+        <div id="requestCards" class="request-cards"></div>
+      </div>
+    </main>
   </div>
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal-window">
+      <span class="modal-close">&times;</span>
+      <h2>Информация о заявке</h2>
+      <div class="modal-content">
+        <p><strong>Организация:</strong> <span id="modalCompany"></span></p>
+        <p><strong>Контактное лицо:</strong> <span id="modalContact"></span></p>
+        <p><strong>Телефон:</strong> <span id="modalPhone"></span></p>
+        <p><strong>Email:</strong> <span id="modalEmail"></span></p>
+        <p><strong>Адрес:</strong> <span id="modalAddress"></span></p>
+        <hr>
+        <p><strong>Оборудование:</strong> <span id="modalEquipment"></span></p>
+        <p><strong>Дата установки:</strong> <span id="modalInstallDate"></span></p>
+        <p><strong>Место установки:</strong> <span id="modalLocation"></span></p>
+        <p><strong>Статус оборудования:</strong> <span id="modalEquipmentStatus"></span></p>
+        <hr>
+        <p><strong>Дата заявки:</strong> <span id="modalRequestDate"></span></p>
+        <p><strong>Описание проблемы:</strong> <span id="modalProblem"></span></p>
+        <p><strong>Место ремонта:</strong> <span id="modalRepairLocation"></span></p>
+
+        <hr>
+        <label>Приоритет:</label>
+        <select id="prioritySelect">
+          <option value="">Выбрать</option>
+          <option value="высокий">Высокий</option>
+          <option value="средний">Средний</option>
+          <option value="низкий">Низкий</option>
+        </select>
+
+        <label>Место ремонта:</label>
+        <select id="repairLocationSelect">
+          <option value="" disabled selected hidden>Выбрать</option>
+          <option value="на предприятии">На предприятии</option>
+          <option value="на базе">На базе</option>
+        </select>
+
+        <div class="modal-actions">
+          <button id="takeInWorkBtn" class="action-btn" disabled>Взять в работу</button>
+          <button id="deleteBtn" class="icon-btn" title="Удалить заявку"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const buttons = document.querySelectorAll('.tab-button');
-    const contents = document.querySelectorAll('.tab-content');
+  let currentTask = null;
 
-    buttons.forEach(button => {
-      button.addEventListener('click', () => {
-        const target = button.getAttribute('data-tab');
+  const buttons = document.querySelectorAll('.tab-button');
+  const contents = document.querySelectorAll('.tab-content');
 
-        buttons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
+  function activateTab(target) {
+    buttons.forEach(btn => btn.classList.remove('active'));
+    contents.forEach(content => content.classList.remove('active'));
 
-        contents.forEach(content => {
-          content.classList.remove('active');
-          if (content.id === target) {
-            content.classList.add('active');
-          }
+    const activeButton = document.querySelector(`.tab-button[data-tab="${target}"]`);
+    const activeContent = document.getElementById(target);
+
+    if (activeButton) activeButton.classList.add('active');
+    if (activeContent) activeContent.classList.add('active');
+
+    if (target === "requests") {
+      loadRequests();
+    } else if (target === "calendar") {
+      loadCalendarTasks();
+    }
+  }
+
+  function loadCalendarTasks() {
+    const container = document.getElementById("calendarTasks");
+    container.innerHTML = "";
+
+    fetch('/api/calendar-tasks')
+      .then(res => res.json())
+      .then(data => {
+        console.log("Календарные задачи:", data);
+        if (!Array.isArray(data) || data.length === 0) {
+          container.innerHTML = "<p>Нет запланированных работ.</p>";
+          return;
+        }
+
+        data.forEach(task => {
+          const card = document.createElement("div");
+          card.className = "calendar-card";
+          card.innerHTML = `
+            <h3>${task.name}</h3>
+            <p><strong>Дата заявки:</strong> ${task.deadline}</p>
+            <p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>
+            <p><strong>Приоритет:</strong> ${task.priority}</p>
+            <div class="calendar-actions">
+              <button class="action-btn">Назначить специалиста</button>
+              <button class="action-btn">Добавить детали</button>
+              <button class="action-btn">Отметить как выполнена</button>
+            </div>
+          `;
+          container.appendChild(card);
         });
+      })
+      .catch(err => {
+        console.error("Ошибка загрузки календаря:", err);
+        container.innerHTML = "<p>Ошибка при загрузке работ.</p>";
       });
+  }
+
+  function loadRequests() {
+    const container = document.getElementById("requestCards");
+    container.innerHTML = "";
+
+    fetch('/api/new-requests')
+      .then(res => res.json())
+      .then(data => {
+        console.log("Заявки:", data);
+        if (!Array.isArray(data) || data.length === 0) {
+          container.innerHTML = "<p>Нет заявок на обслуживание.</p>";
+          return;
+        }
+
+        data.forEach(task => {
+          const card = document.createElement("div");
+          card.className = "request-card";
+          card.innerHTML = `
+            <h3>${task.name}</h3>
+            <p><strong>Статус:</strong> ${task.type}</p>
+            <p><strong>Дата заявки:</strong> ${task.deadline}</p>
+            <p><strong>Описание:</strong> ${task.description}</p>
+          `;
+          const button = document.createElement("button");
+          button.className = "action-btn";
+          button.textContent = "Рассмотреть заявку";
+          button.addEventListener("click", () => openModal(task));
+          card.appendChild(button);
+          container.appendChild(card);
+        });
+      })
+      .catch(err => {
+        console.error("Ошибка загрузки заявок:", err);
+        container.innerHTML = "<p>Ошибка при загрузке заявок.</p>";
+      });
+  }
+
+  function openModal(task) {
+    currentTask = task;
+
+    document.getElementById("modalCompany").textContent = task.company || "";
+    document.getElementById("modalContact").textContent = task.contact || "";
+    document.getElementById("modalPhone").textContent = task.phone || "";
+    document.getElementById("modalEmail").textContent = task.email || "";
+    document.getElementById("modalAddress").textContent = task.address || "";
+
+    document.getElementById("modalEquipment").textContent = task.equipment || "";
+    document.getElementById("modalInstallDate").textContent = task.install_date || "";
+    document.getElementById("modalLocation").textContent = task.location || "";
+    document.getElementById("modalEquipmentStatus").textContent = task.equipment_status || "";
+
+    document.getElementById("modalRequestDate").textContent = task.deadline || "";
+    document.getElementById("modalProblem").textContent = task.description || "";
+    document.getElementById("modalRepairLocation").textContent = task.repair_location || "";
+
+    document.getElementById("prioritySelect").value = task.priority || "";
+    document.getElementById("repairLocationSelect").value =
+      (task.repair_location === "на предприятии" || task.repair_location === "на базе")
+        ? task.repair_location
+        : "";
+
+    checkActivationReady();
+    document.getElementById("modalOverlay").classList.remove("hidden");
+  }
+
+  function checkActivationReady() {
+    const priority = document.getElementById("prioritySelect").value;
+    const location = document.getElementById("repairLocationSelect").value;
+    const validPriorities = ["высокий", "средний", "низкий"];
+    const validLocations = ["на предприятии", "на базе"];
+    document.getElementById("takeInWorkBtn").disabled = !(validPriorities.includes(priority) && validLocations.includes(location));
+  }
+
+  document.getElementById("prioritySelect").addEventListener("change", e => {
+    fetch(`/api/set-priority/${currentTask.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priority: e.target.value })
+    }).then(checkActivationReady);
+  });
+
+  document.getElementById("repairLocationSelect").addEventListener("change", e => {
+    fetch(`/api/set-location/${currentTask.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ location: e.target.value })
+    }).then(checkActivationReady);
+  });
+
+  document.getElementById("takeInWorkBtn").addEventListener("click", () => {
+    fetch(`/api/activate-request/${currentTask.id}`, {
+      method: "POST"
+    }).then(() => {
+      document.getElementById("modalOverlay").classList.add("hidden");
+      loadRequests();
     });
-  </script></body>
+  });
+
+  document.getElementById("deleteBtn").addEventListener("click", () => {
+    const reason = prompt("Укажите причину удаления заявки:");
+    if (!reason) return;
+
+    fetch(`/api/delete-request/${currentTask.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason })
+    }).then(() => {
+      document.getElementById("modalOverlay").classList.add("hidden");
+      loadRequests();
+    });
+  });
+
+  document.querySelector(".modal-close").addEventListener("click", () => {
+    document.getElementById("modalOverlay").classList.add("hidden");
+  });
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const target = button.getAttribute('data-tab');
+      activateTab(target);
+    });
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    activateTab("calendar");
+  });
+</script>
+</body>
 </html>

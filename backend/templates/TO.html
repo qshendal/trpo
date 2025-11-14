@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <title>Создание заявки — ТехОбслуживание</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="TO.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='TO.css') }}">
 </head>
 <body>
   <div class="form-container">
     <h2>Создание заявки на ТО</h2>
-    <form class="request-form">
+    <form class="request-form" method="POST" action="{{ url_for('create_request') }}">
       <fieldset>
         <legend>Данные о клиенте</legend>
         <label>Название организации:
@@ -55,25 +55,27 @@
         </label>
       </fieldset>
       <div class="form-actions">
-          <button type="submit" class="submit-btn"><i class="fas fa-save"></i> Сохранить заявку</button>
-          <button type="button" id="backBtn" class="cancel-btn">
+        <button type="submit" class="submit-btn"><i class="fas fa-save"></i> Сохранить заявку</button>
+        <button type="button" id="backBtn" class="cancel-btn">
           <i class="fas fa-arrow-left"></i> Назад
         </button>
       </div>
     </form>
   </div>
-<script>
-  const backBtn = document.getElementById('backBtn');
-  const params = new URLSearchParams(window.location.search);
-  const role = params.get('role');
-  backBtn.addEventListener('click', () => {
-    if (role === 'guest') {
-      location.href = 'вход.html'; // Гость возвращается на форму входа
+
+  <script>
+  const role = "{{ session.get('role', 'guest') }}";
+  const entryUrl = "{{ url_for('entry_point') }}";
+  const userUrl = "{{ url_for('user_panel') }}";
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (role === "guest") {
+      window.location.href = entryUrl;
     } else {
-      location.href = 'пользователь.html'; // Авторизованный пользователь — на панель действий
+      window.location.href = userUrl;
     }
   });
 </script>
+</script>
 </body>
 </html>
-    

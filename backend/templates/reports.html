@@ -2,9 +2,9 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>ТехОбслуживание — Отчеты</title>
+  <title>ТехОбслуживание — Отчёты</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="Reports.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Reports.css') }}">
 </head>
 <body>
   <div class="container">
@@ -13,17 +13,49 @@
       <p class="subtitle">Управление техникой</p>
       <nav class="menu">
         <ul>
-          <li><a href="Панель управления.html"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li><a href="Планирование работ.html"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="инвентарь.html"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li class="active"><a href="Отчеты.html"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
+          <li><a href="{{ url_for('work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
+          <li><a href="{{ url_for('equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
+          <li><a href="{{ url_for('masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
+          <li><a href="{{ url_for('reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
+
     <main class="dashboard">
       <header class="top-bar">
-        <h2>Отчеты</h2>
+        <h2>Отчёты</h2>
       </header>
+
+      <section class="report-panel">
+        <div class="controls">
+          <div class="toggle-buttons">
+            <button class="toggle-btn active" data-mode="expenses">📊 Отчёты по затратам</button>
+            <button class="toggle-btn" data-mode="maintenance">🛠️ Отчёты по обслуживанию</button>
+          </div>
+
+          <button class="apply-btn"><i class="fas fa-filter"></i> Применить фильтры</button>
+        </div>
+
+        <div class="tab-content active" id="expenses">
+          <div id="expensesContent" class="calendar-tasks">
+          </div>
+        </div>
+
+        <div class="tab-content" id="maintenance">
+          <div id="maintenanceContent" class="calendar-tasks">
+          </div>
+          <script>
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+</script>
+
+        </div>
+      </section>
     </main>
   </div>
 </body>
