@@ -93,6 +93,10 @@ def work_planning():
 def reports():
     return render_template("reports.html")
 
+@app.route("/masters")
+def masters():
+    return render_template("masters.html")
+
 @app.route("/create-request-form")
 def create_request_form():
     if "role" not in session:
