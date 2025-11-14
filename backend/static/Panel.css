@@ -199,3 +199,17 @@ a {
   background-color: #e6f7ff;
   color: #0077b6;
 }
+
+#maintenanceTasks {
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-subcard.low-stock {
+  background-color: #fff8dc; 
+  border: 1px solid #f1c40f; 
+  border-radius: 8px;
+}

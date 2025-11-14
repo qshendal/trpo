@@ -44,3 +44,22 @@ body {
 .auth-buttons button:hover {
   background-color: #2c4a70;
 }
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #e74c3c;
+  color: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  font-size: 16px;
+  z-index: 999;
+  text-align: center;
+}
+.hidden {
+  display: none;
+}
+
