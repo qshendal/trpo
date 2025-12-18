@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Панель пользователя</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='Actions.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='user.css') }}">
 </head>
 <body>
   <div class="user-panel">
@@ -11,10 +11,10 @@
     <p>Выберите действие:</p>
 
     <div class="action-buttons">
-      <form action="{{ url_for('my_requests') }}" method="get">
+      <form action="{{ url_for('client.my_requests') }}" method="get">
         <button type="submit">Мои заявки</button>
       </form>
-      <form action="{{ url_for('create_request_form') }}" method="get">
+      <form action="{{ url_for('client.create_request_form') }}" method="get">
         <input type="hidden" name="role" value="user">
         <button type="submit">Создать заявку</button>
       </form>

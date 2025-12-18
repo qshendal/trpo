@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>ТехОбслуживание — Панель управления</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="{{ url_for('static', filename='Panel.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Dashboard.css') }}">
 </head>
 <body>
   <div class="container">
@@ -13,11 +13,11 @@
       <p class="subtitle">Управление техникой</p>
       <nav class="menu">
         <ul>
-          <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li><a href="{{ url_for('work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="{{ url_for('equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="{{ url_for('masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
-          <li><a href="{{ url_for('reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
+          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
+          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
+          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
+          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
@@ -72,7 +72,7 @@
         <div class="task-box task-full">
           <div class="task-header">
             <div class="task-title">Уведомления о малых запасах</div>
-            <button class="action-btn" onclick="window.location.href='/equipment-registry'">Управление складом</button>
+            <button class="action-btn" onclick="window.location.href='/client/equipment-registry'">Управление складом</button>
           </div>
           <div class="task-inner-cards" id="lowStockAlerts"></div>
         </div>

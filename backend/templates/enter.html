@@ -9,16 +9,14 @@
 <body>
   <div class="auth-wrapper">
     <h2>Выберите способ входа</h2>
-    <div class="auth-buttons">
-      <form action="{{ url_for('guest_entry') }}" method="get">
-        <button type="submit" class="action-btn">Продолжить как гость</button>
-      </form>
-      <form action="{{ url_for('registration') }}" method="get">
-        <button type="submit" class="action-btn">Войти</button>
-      </form>
-    </div>
-  </div>
-
+      <div class="auth-buttons">
+        <form action="{{ url_for('client.guest_entry') }}" method="get">
+          <button type="submit" class="action-btn">Продолжить как гость</button>
+        </form>
+        <form action="{{ url_for('client.registration') }}" method="get">
+          <button type="submit" class="action-btn">Войти</button>
+        </form>
+      </div>
 <script>
   const errorText = "{{ login_error }}";
   const popup = document.getElementById("loginErrorPopup");

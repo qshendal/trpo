@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // === Проверка совпадения паролей при регистрации ===
   const regForm = document.getElementById("regForm");
   if (regForm) {
     regForm.addEventListener("submit", (e) => {
@@ -12,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // === Переключение видимости пароля ===
   window.togglePassword = () => {
     const password = document.getElementById("regPass");
     const confirm = document.getElementById("confirm");
@@ -21,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     confirm.type = type;
   };
 
-  // === Анимация полей ввода ===
   document.querySelectorAll(".auth-field").forEach(field => {
     const input = field.querySelector(".auth-input");
 
@@ -40,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // === Переключение между формами входа и регистрации ===
   const authShell = document.getElementById("authShell");
   const showRegister = document.getElementById("showRegister");
   const showLogin = document.getElementById("showLogin");
@@ -55,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // === Проверка заполнения формы входа ===
   const loginForm = document.querySelector(".auth-login form");
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {

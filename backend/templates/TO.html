@@ -9,7 +9,7 @@
 <body>
   <div class="form-container">
     <h2>Создание заявки на ТО</h2>
-    <form class="request-form" method="POST" action="{{ url_for('create_request') }}">
+    <form class="request-form" method="POST" action="{{ url_for('client.create_request') }}">
       <fieldset>
         <legend>Данные о клиенте</legend>
         <label>Название организации:
@@ -65,8 +65,8 @@
 
   <script>
   const role = "{{ session.get('role', 'guest') }}";
-  const entryUrl = "{{ url_for('entry_point') }}";
-  const userUrl = "{{ url_for('user_panel') }}";
+  const entryUrl = "{{ url_for('auth.entry_point') }}";
+  const userUrl = "{{ url_for('client.user_panel') }}";
 
   document.getElementById('backBtn').addEventListener('click', () => {
     if (role === "guest") {
