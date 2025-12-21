@@ -24,8 +24,8 @@
 
     <main class="dashboard">
       <header class="top-bar">
-        <h2>Назначение мастера</h2>
-        <button id="openMasterModal" class="assign-btn"><i class="fas fa-user-plus"></i> Назначить мастера</button>
+        <h2>Добавление мастера</h2>
+        <button id="openMasterModal" class="assign-btn"><i class="fas fa-user-plus"></i> Добавить мастера</button>
       </header>
 
       <div id="mastersContainer" class="masters-list"></div>
@@ -35,7 +35,7 @@
   <div id="masterModalOverlay" class="modal-overlay hidden">
     <div class="modal-window">
       <span class="modal-close" id="closeMasterModal">&times;</span>
-      <h2 id="modalTitle">Назначить мастера</h2>
+      <h2 id="modalTitle">Добавить мастера</h2>
       <div class="modal-content">
         <label for="masterName">ФИО мастера:</label>
         <input type="text" id="masterName" required>
@@ -56,40 +56,108 @@
     </div>
   </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const modal = document.getElementById("masterModalOverlay");
-      const openBtn = document.getElementById("openMasterModal");
-      const closeBtn = document.getElementById("closeMasterModal");
-      const saveBtn = document.getElementById("saveMasterBtn");
+ <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    let editingMasterId = null
+    const modal = document.getElementById("masterModalOverlay")
+    const openBtn = document.getElementById("openMasterModal")
+    const closeBtn = document.getElementById("closeMasterModal")
+    const saveBtn = document.getElementById("saveMasterBtn")
+    const container = document.getElementById("mastersContainer")
 
-      openBtn.addEventListener("click", () => {
-        modal.classList.remove("hidden");
-      });
+    openBtn.addEventListener("click", () => {
+      editingMasterId = null
+      clearModal()
+      document.getElementById("modalTitle").textContent = "Добавить мастера"
+      modal.classList.remove("hidden")
+    })
 
-      closeBtn.addEventListener("click", () => {
-        modal.classList.add("hidden");
-      });
+    closeBtn.addEventListener("click", () => {
+      modal.classList.add("hidden")
+    })
 
-      window.addEventListener("click", (event) => {
-        if (event.target === modal) {
-          modal.classList.add("hidden");
-        }
-      });
+    window.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        modal.classList.add("hidden")
+      }
+    })
 
-      saveBtn.addEventListener("click", () => {
-        const payload = {
-          name: document.getElementById("masterName").value,
-          specialty: document.getElementById("masterSpecialty").value,
-          phone: document.getElementById("assignNumber").value,
-          comment: document.getElementById("masterComment").value
-        };
-        console.log("Данные мастера:", payload);
+    function clearModal() {
+      document.getElementById("masterName").value = ""
+      document.getElementById("masterSpecialty").value = ""
+      document.getElementById("assignNumber").value = ""
+      document.getElementById("masterComment").value = ""
+    }
 
-        modal.classList.add("hidden");
-      });
-    });
-  </script>
+    saveBtn.addEventListener("click", () => {
+      const payload = {
+        name: document.getElementById("masterName").value.trim(),
+        specialty: document.getElementById("masterSpecialty").value.trim(),
+        phone: document.getElementById("assignNumber").value.trim(),
+        comment: document.getElementById("masterComment").value.trim()
+      }
+      const url = editingMasterId ? `/api/update-master/${editingMasterId}` : "/api/add-master"
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        editingMasterId = null
+        modal.classList.add("hidden")
+        loadMasters()
+      })
+      .catch(err => {
+        alert("Ошибка при сохранении мастера")
+        console.error(err)
+      })
+    })
 
+    function loadMasters() {
+      container.innerHTML = ""
+      fetch("/api/masters")
+        .then(res => res.json())
+        .then(data => {
+          if (!Array.isArray(data) || data.length === 0) {
+            container.innerHTML = "<p>Мастеров пока нет.</p>"
+            return
+          }
+          data.forEach(master => {
+            const card = document.createElement("div")
+            card.className = "master-card"
+            card.innerHTML = `
+              <h3>${master.name}</h3>
+              <p>Специализация: ${master.specialty}</p>
+              <p>Телефон: ${master.phone}</p>
+              <p>Примечание: ${master.comment || "—"}</p>
+              <div class="master-actions">
+                <button class="info-btn">Редактировать</button>
+                <button class="delete-btn">Удалить</button>
+              </div>
+            `
+            card.querySelector(".delete-btn").addEventListener("click", () => {
+              if (confirm("Удалить этого мастера?")) {
+                fetch(`/api/delete-master/${master.id}`, { method: "POST" })
+                  .then(() => loadMasters())
+                  .catch(() => alert("Ошибка при удалении"))
+              }
+            })
+            card.querySelector(".info-btn").addEventListener("click", () => {
+              editingMasterId = master.id
+              document.getElementById("masterName").value = master.name
+              document.getElementById("masterSpecialty").value = master.specialty
+              document.getElementById("assignNumber").value = master.phone
+              document.getElementById("masterComment").value = master.comment || ""
+              document.getElementById("modalTitle").textContent = "Редактировать мастера"
+              modal.classList.remove("hidden")
+            })
+            container.appendChild(card)
+          })
+        })
+    }
+
+    loadMasters()
+  })
+</script>
 </body>
 </html>
