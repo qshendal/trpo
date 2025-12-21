@@ -45,18 +45,21 @@ a {
 .menu li {
   padding: 10px 0;
   font-size: 16px;
+  transition: all 0.2s ease;
 }
 
+.menu li.active,
 .menu li:hover {
   background-color: #2c4a70;
+  padding-left: 10px;
   border-radius: 4px;
+  transform: translateX(5px);
 }
 
 .menu a {
   display: block;
   color: inherit;
 }
-
 .dashboard {
   flex: 1;
   padding: 15px;

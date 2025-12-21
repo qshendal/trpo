@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <title>ТехОбслуживание — Отчёты</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="{{ url_for('static', filename='Reports.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='reports.css') }}">
 </head>
 <body>
   <div class="container">
+    <!-- Боковое меню -->
     <aside class="sidebar">
       <h1 class="logo">🔧 ТехОбслуживание</h1>
-      <p class="subtitle">Управление техникой</p>
+      <p class="subtitle">Отчёты</p>
       <nav class="menu">
         <ul>
           <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
@@ -22,41 +23,354 @@
       </nav>
     </aside>
 
+    <!-- Основная панель -->
     <main class="dashboard">
+      <!-- Заголовок + кнопки экспорта -->
       <header class="top-bar">
         <h2>Отчёты</h2>
+        <div class="export-buttons">
+          <button class="export-btn pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+          <button class="export-btn excel"><i class="fas fa-file-excel"></i> Excel</button>
+        </div>
       </header>
 
-      <section class="report-panel">
-        <div class="controls">
-          <div class="toggle-buttons">
-            <button class="toggle-btn active" data-mode="expenses">📊 Отчёты по затратам</button>
-            <button class="toggle-btn" data-mode="maintenance">🛠️ Отчёты по обслуживанию</button>
+      <!-- Переключатель вкладок -->
+      <div class="tabs-wrapper">
+        <button class="tab-button active" data-tab="expenses">
+          <i class="fas fa-money-bill-wave"></i> Затраты
+        </button>
+        <button class="tab-button" data-tab="maintenance">
+          <i class="fas fa-clipboard-check"></i> Обслуживание
+        </button>
+      </div>
+
+      <!-- Панель фильтров -->
+      <div class="filters-panel">
+        <div class="filters-row">
+          <!-- Оборудование -->
+          <div class="filter-group">
+            <label for="equipment">Оборудование:</label>
+            <select id="equipment" class="filter-select" multiple size="8">
+              <!-- Заполнится динамически -->
+            </select>
           </div>
 
-          <button class="apply-btn"><i class="fas fa-filter"></i> Применить фильтры</button>
-        </div>
-
-        <div class="tab-content active" id="expenses">
-          <div id="expensesContent" class="calendar-tasks">
+          <!-- Мастер -->
+          <div class="filter-group">
+            <label for="master">Мастер:</label>
+            <select id="master" class="filter-select" multiple size="8">
+              <!-- Заполнится динамически -->
+            </select>
           </div>
         </div>
 
-        <div class="tab-content" id="maintenance">
-          <div id="maintenanceContent" class="calendar-tasks">
-          </div>
-          <script>
-  document.querySelectorAll('.toggle-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
-</script>
-
+        <!-- Кнопки фильтров справа -->
+        <div class="filter-actions">
+          <button id="applyFilters" class="action-btn">
+            <i class="fas fa-check"></i> Применить
+          </button>
+          <button id="resetFilters" class="action-btn">
+            <i class="fas fa-redo"></i> Сбросить
+          </button>
         </div>
-      </section>
+      </div>
+
+      <!-- Контент отчетов -->
+      <div class="task-section">
+        <!-- Отчеты по затратам -->
+        <div class="tab-content active" id="expensesContent">
+          <div class="report-container">
+            <h3>📊 Отчёты по стоимости обслуживания</h3>
+            <table class="report-table" id="costReportsTable">
+              <thead>
+                <tr>
+                  <th>ID отчета</th>
+                  <th>Период</th>
+                  <th>Оборудование</th>
+                  <th>Стоимость труда</th>
+                  <th>Стоимость запчастей</th>
+                  <th>Общая стоимость</th>
+                  <th>Задачи</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="reportsData">
+                <!-- Данные загрузятся динамически -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Отчеты по обслуживанию -->
+        <div class="tab-content" id="maintenanceContent">
+          <div class="report-container">
+            <h3>🛠️ Отчёты по обслуживанию</h3>
+            <div class="empty-state" id="maintenanceEmpty">
+              <i class="fas fa-clipboard-list"></i>
+              <p>Выберите вкладку "Обслуживание" для загрузки данных</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
+
+  <script>
+    // Конфигурация API
+    const API_ENDPOINTS = {
+      equipment: '/api/reports/equipment-list',
+      masters: '/api/reports/masters-list',
+      expenses: '/api/reports/expenses',
+      maintenance: '/api/reports/maintenance'
+    };
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+      loadFilterOptions();
+      loadReports('expenses');
+      setupEventListeners();
+    });
+
+    // Загрузка фильтров
+    async function loadFilterOptions() {
+      try {
+        // Оборудование
+        const equipmentRes = await fetch(API_ENDPOINTS.equipment);
+        const equipment = await equipmentRes.json();
+        populateSelect('#equipment', equipment);
+        
+        // Мастера
+        const mastersRes = await fetch(API_ENDPOINTS.masters);
+        const masters = await mastersRes.json();
+        populateSelect('#master', masters);
+        
+      } catch (error) {
+        console.error('Ошибка загрузки фильтров:', error);
+      }
+    }
+
+    // Загрузка отчетов
+    async function loadReports(type) {
+      try {
+        const filters = getCurrentFilters();
+        const endpoint = type === 'expenses' ? API_ENDPOINTS.expenses : API_ENDPOINTS.maintenance;
+        
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(filters)
+        });
+        
+        const data = await response.json();
+        renderReports(type, data);
+        
+      } catch (error) {
+        console.error('Ошибка загрузки отчетов:', error);
+        showEmptyState(type);
+      }
+    }
+
+    // Получение текущих фильтров
+    function getCurrentFilters() {
+      const equipmentSelect = document.getElementById('equipment');
+      const masterSelect = document.getElementById('master');
+      
+      return {
+        equipment: Array.from(equipmentSelect.selectedOptions).map(opt => opt.value),
+        master: Array.from(masterSelect.selectedOptions).map(opt => opt.value)
+      };
+    }
+
+    // Отрисовка отчетов
+    function renderReports(type, data) {
+      let tbody;
+      let emptyElement;
+      
+      if (type === 'expenses') {
+        tbody = document.getElementById('reportsData');
+        emptyElement = document.querySelector('#expensesContent .empty-state');
+      } else {
+        tbody = document.createElement('tbody');
+        const container = document.querySelector('#maintenanceContent .task-inner-cards');
+        container.innerHTML = '';
+        const table = document.createElement('table');
+        table.className = 'report-table';
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>ID заявки</th>
+              <th>Дата</th>
+              <th>Оборудование</th>
+              <th>Мастер</th>
+              <th>Статус</th>
+              <th>Стоимость</th>
+              <th>Время выполнения</th>
+              <th>Детали</th>
+            </tr>
+          </thead>
+        `;
+        tbody = document.createElement('tbody');
+        table.appendChild(tbody);
+        container.appendChild(table);
+        emptyElement = document.getElementById('maintenanceEmpty');
+      }
+      
+      if (!data || data.length === 0) {
+        showEmptyState(type);
+        return;
+      }
+      
+      let html = '';
+      if (type === 'expenses') {
+        data.forEach((report, index) => {
+          html += `
+            <tr>
+              <td>RPT${String(index + 1).padStart(3, '0')}</td>
+              <td>${report.period || 'Н/Д'}</td>
+              <td>${report.equipment || 'Все оборудование'}</td>
+              <td>$${formatCurrency(report.labor_cost)}</td>
+              <td>$${formatCurrency(report.parts_cost)}</td>
+              <td><strong>$${formatCurrency(report.total_cost)}</strong></td>
+              <td>${report.tasks_count || 0}</td>
+              <td>
+                <button class="action-btn" onclick="viewReport('expenses', ${report.id})">
+                  <i class="fas fa-eye"></i> View
+                </button>
+                <button class="action-btn" onclick="exportReport('expenses', ${report.id})">
+                  <i class="fas fa-download"></i> Export
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      } else {
+        data.forEach((report, index) => {
+          html += `
+            <tr>
+              <td>${report.request_id || 'Н/Д'}</td>
+              <td>${report.date || 'Н/Д'}</td>
+              <td>${report.equipment || 'Н/Д'}</td>
+              <td>${report.master || 'Не назначен'}</td>
+              <td><span class="task-priority ${report.status || 'medium'}">${report.status_text || 'Н/Д'}</span></td>
+              <td>$${formatCurrency(report.cost)}</td>
+              <td>${report.duration || 'Н/Д'}</td>
+              <td>
+                <button class="action-btn" onclick="viewReport('maintenance', ${report.id})">
+                  <i class="fas fa-eye"></i> Детали
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+      
+      tbody.innerHTML = html;
+      if (emptyElement) emptyElement.style.display = 'none';
+    }
+
+    // Вспомогательные функции
+    function populateSelect(selector, items) {
+      const select = document.querySelector(selector);
+      if (!select) return;
+      
+      select.innerHTML = '';
+      
+      items.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name;
+        select.appendChild(option);
+      });
+    }
+
+    function formatCurrency(amount) {
+      if (!amount) return '0.00';
+      return parseFloat(amount).toFixed(2);
+    }
+
+    function showEmptyState(type) {
+      if (type === 'expenses') {
+        const tbody = document.getElementById('reportsData');
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="empty-state">
+              <i class="fas fa-chart-bar"></i>
+              <p>Нет данных для отображения</p>
+            </td>
+          </tr>
+        `;
+      } else {
+        const container = document.querySelector('#maintenanceContent .task-inner-cards');
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <p>Нет данных по обслуживанию</p>
+          </div>
+        `;
+      }
+    }
+
+    // Настройка обработчиков событий
+    function setupEventListeners() {
+      // Переключение вкладок
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+          const tabId = this.dataset.tab + 'Content';
+          document.getElementById(tabId).classList.add('active');
+          
+          loadReports(this.dataset.tab);
+        });
+      });
+
+      // Применить фильтры
+      document.getElementById('applyFilters').addEventListener('click', function() {
+        const activeTab = document.querySelector('.tab-button.active').dataset.tab;
+        loadReports(activeTab);
+      });
+      
+      // Сбросить фильтры
+      document.getElementById('resetFilters').addEventListener('click', function() {
+        document.querySelectorAll('.filter-select').forEach(select => {
+          Array.from(select.options).forEach(option => {
+            option.selected = false;
+          });
+        });
+        const activeTab = document.querySelector('.tab-button.active').dataset.tab;
+        loadReports(activeTab);
+      });
+      
+      // Экспорт PDF
+      document.querySelector('.action-btn.pdf').addEventListener('click', function() {
+        const activeTab = document.querySelector('.tab-button.active').dataset.tab;
+        exportAllReports(activeTab, 'pdf');
+      });
+      
+      // Экспорт Excel
+      document.querySelector('.action-btn.excel').addEventListener('click', function() {
+        const activeTab = document.querySelector('.tab-button.active').dataset.tab;
+        exportAllReports(activeTab, 'excel');
+      });
+    }
+
+    // Функции для работы с отчетами
+    function viewReport(type, reportId) {
+      alert(`Просмотр отчета ${type} #${reportId}`);
+    }
+
+    function exportReport(type, reportId) {
+      alert(`Экспорт отчета ${type} #${reportId}`);
+    }
+
+    function exportAllReports(type, format) {
+      alert(`Экспорт всех отчетов ${type} в ${format.toUpperCase()}`);
+    }
+
+  </script>
 </body>
 </html>
