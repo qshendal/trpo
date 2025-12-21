@@ -198,11 +198,11 @@ def api_calendar_tasks():
     cur = conn.cursor()
     cur.execute("""
         SELECT sr.id,
-            sr.дата_заявки,
-            sr.описание_проблемы,
-            sr.приоритет,
-            t.фио AS исполнитель,
-            eq.название AS оборудование
+               sr.дата_заявки,
+               sr.описание_проблемы,
+               sr.приоритет,
+               t.фио AS исполнитель,
+               eq.название AS оборудование
         FROM service_request sr
         JOIN equipment eq ON eq.client_id = sr.client_id
         LEFT JOIN technician t ON t.id = sr.technician_id
@@ -210,27 +210,42 @@ def api_calendar_tasks():
         ORDER BY sr.дата_заявки DESC
     """)
     rows = cur.fetchall()
-    conn.close()
 
     tasks = []
     for row in rows:
+        # приоритет
         priority = row["приоритет"] or ""
-        priority_map = {
-            "высокий": "Высокий",
-            "средний": "Средний",
-            "низкий": "Низкий",
-        }
+        priority_map = {"высокий": "Высокий", "средний": "Средний", "низкий": "Низкий"}
         priority_text = priority_map.get(priority.lower(), "Не задан")
+
+        # назначенная деталь (одна на заявку)
+        cur.execute("""
+            SELECT p.название, up.количество
+            FROM used_parts up
+            JOIN part p ON p.id = up.part_id
+            WHERE up.service_request_id = ?
+            LIMIT 1
+        """, (row["id"],))
+        part_row = cur.fetchone()
+        assigned_part = None
+        if part_row:
+            assigned_part = {
+                "name": part_row["название"],
+                "qty": part_row["количество"]
+            }
 
         tasks.append({
             "id": row["id"],
             "name": row["оборудование"],
             "deadline": row["дата_заявки"],
             "executor": row["исполнитель"] if row["исполнитель"] else None,
-            "priority": priority_text
+            "priority": priority_text,
+            "assignedPart": assigned_part
         })
 
+    conn.close()
     return jsonify(tasks)
+
 
 @api_bp.route("/add-part", methods=["POST"])
 def api_add_part():
@@ -327,3 +342,150 @@ def low_stock():
         })
 
     return jsonify(parts)
+
+@api_bp.route("/masters", methods=["GET"])
+def get_masters():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            id,
+            фио AS name,
+            специализация AS specialty,
+            телефон AS phone,
+            примечание AS comment
+        FROM technician
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in rows])
+
+
+
+@api_bp.route("/add-master", methods=["POST"])
+def add_master():
+    data = request.get_json()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO technician (фио, специализация, телефон, примечание)
+        VALUES (?, ?, ?, ?)
+    """, (data["name"], data["specialty"], data["phone"], data.get("comment", "")))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "ok"})
+
+
+@api_bp.route("/delete-master/<int:master_id>", methods=["POST"])
+def delete_master(master_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM technician WHERE id = ?", (master_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "deleted"})
+
+@api_bp.route("/update-master/<int:master_id>", methods=["POST"])
+def update_master(master_id):
+    data = request.get_json()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE technician
+        SET фио = ?, специализация = ?, телефон = ?, примечание = ?
+        WHERE id = ?
+    """, (data["name"], data["specialty"], data["phone"], data.get("comment", ""), master_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "updated"})
+
+@api_bp.route("/assign-masters/<int:request_id>", methods=["POST"])
+def assign_master(request_id):
+    data = request.get_json()
+    masters = data.get("masters", [])
+
+    technician_id = masters[0] if masters else None
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE service_request SET technician_id = ? WHERE id = ?", (technician_id, request_id))
+    conn.commit()
+
+    cur.execute("""
+        SELECT id, фио AS name, специализация AS specialty, телефон AS phone
+        FROM technician
+        WHERE id = ?
+    """, (technician_id,))
+    row = cur.fetchone()
+    conn.close()
+
+    return jsonify({"assignedMasters": [dict(row)] if row else []})
+
+@api_bp.route("/assign-part/<int:request_id>", methods=["POST"])
+def assign_part(request_id):
+    data = request.get_json()
+    part_id = data.get("part_id")
+    qty = data.get("qty", 1)
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM used_parts WHERE service_request_id = ?", (request_id,))
+
+    cur.execute(
+        "INSERT INTO used_parts (service_request_id, part_id, количество) VALUES (?, ?, ?)",
+        (request_id, part_id, qty)
+    )
+
+    conn.commit()
+
+    cur.execute("""
+        SELECT up.id, p.название AS name, p.артикул AS type, p.цена AS price, up.количество AS qty
+        FROM used_parts up
+        JOIN part p ON up.part_id = p.id
+        WHERE up.service_request_id = ?
+    """, (request_id,))
+    row = cur.fetchone()
+    conn.close()
+
+    return jsonify({"assignedPart": dict(row) if row else None})
+
+
+@api_bp.route("/parts_en", methods=["GET"])
+def get_parts_en():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM part")
+    rows = cur.fetchall()
+    conn.close()
+
+    parts = []
+    for row in rows:
+        parts.append({
+            "id": row[0],
+            "name": row[1],
+            "type": row[2],
+            "price": row[3],
+            "quantity": row[4],
+            "threshold": row[5]
+        })
+
+    return jsonify(parts)
+
+@api_bp.route("/unassign-master/<int:request_id>", methods=["POST"])
+def unassign_master(request_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE service_request SET technician_id = NULL WHERE id = ?", (request_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@api_bp.route("/unassign-part/<int:request_id>", methods=["POST"])
+def unassign_part(request_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM used_parts WHERE service_request_id = ?", (request_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
