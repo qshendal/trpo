@@ -1,5 +1,8 @@
 from flask import Blueprint, render_template, session, request, redirect, url_for
 from models.db import get_db
+from security import encrypt_field, decrypt_field
+import sqlite3, csv, os, datetime
+
 
 client_bp = Blueprint("client", __name__, url_prefix="/client")
 
@@ -31,18 +34,20 @@ def create_request():
     cur = conn.cursor()
 
     try:
+        # 🔒 сохраняем клиента с шифрованием контактных данных
         cur.execute("""
             INSERT INTO client (название_организации, контактное_лицо, телефон, email, адрес)
             VALUES (?, ?, ?, ?, ?)
         """, (
             form.get("company"),
-            form.get("contact"),
-            form.get("phone"),
-            form.get("email"),
-            form.get("address")
+            encrypt_field(form.get("contact")),
+            encrypt_field(form.get("phone")),
+            encrypt_field(form.get("email")),
+            encrypt_field(form.get("address"))
         ))
         client_id = cur.lastrowid
 
+        # сохраняем оборудование
         cur.execute("""
             INSERT INTO equipment (client_id, название, дата_установки, место_установки, текущий_статус)
             VALUES (?, ?, ?, ?, ?)
@@ -54,6 +59,7 @@ def create_request():
             form.get("equipment_status")
         ))
 
+        # сохраняем заявку
         cur.execute("""
             INSERT INTO service_request (client_id, users_id, дата_заявки, описание_проблемы, статус, место_ремонта)
             VALUES (?, ?, DATE('now'), ?, ?, ?)
@@ -76,6 +82,7 @@ def create_request():
         return redirect(url_for("client.user_panel"))
     else:
         return redirect(url_for("auth.entry_point"))
+
 
 @client_bp.route("/guest-entry")
 def guest_entry():

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from models.db import get_db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -26,7 +27,8 @@ def register():
         return render_template("enter.html", reg_error="Пользователь с таким именем или email уже существует")
 
     try:
-        cur.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", (name, email, password))
+        hashed_password = generate_password_hash(password)
+        cur.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", (name, email, hashed_password))
         conn.commit()
         user_id = cur.lastrowid
     except Exception as e:
@@ -44,19 +46,35 @@ def login():
     name = request.form["name"]
     password = request.form["password"]
 
-    if name == "admin_techservice" and password == "123456":
-        session["role"] = "admin"
-        return redirect(url_for("admin.dashboard"))
-
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE name = ? AND password = ?", (name, password))
+    cur.execute("SELECT * FROM users WHERE name = ?", (name,))
     user = cur.fetchone()
     conn.close()
 
-    if user:
-        session["role"] = "user"
-        session["user_id"] = user["id"]
-        return redirect(url_for("client.user_panel"))
-    else:
+    if not user:
         return render_template("enter.html", login_error="Неверный логин или пароль")
+
+    stored_password = user["password"] or ""
+
+    is_hashed = ":" in stored_password
+
+    valid = False
+    if is_hashed:
+        valid = check_password_hash(stored_password, password)
+    else:
+        valid = (stored_password == password)
+
+    if not valid:
+        return render_template("enter.html", login_error="Неверный логин или пароль")
+
+    session["user_id"] = user["id"]
+
+    # Админа не трогаем — как было
+    if user["name"].strip() == "admin_techservice" and user["password"].strip() == "123456":
+        session["role"] = "admin"
+        return redirect(url_for("admin.dashboard"))
+    else:
+        session["role"] = "user"
+        return redirect(url_for("client.user_panel"))
+
