@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -12,14 +13,12 @@
     .tab-content.active { display: block; }
     .log-block { margin-top:10px; padding:10px; border:1px solid #ccc; background:#fafafa; }
   </style>
-
 </head>
 <body>
   <div class="container">
-    <!-- Боковое меню -->
     <aside class="sidebar">
       <h1 class="logo">🔧 ТехОбслуживание</h1>
-      <p class="subtitle">Отчёты</p>
+      <p class="subtitle">Управление техникой</p>
       <nav class="menu">
         <ul>
           <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
@@ -31,40 +30,19 @@
       </nav>
     </aside>
 
-    <!-- Основная панель -->
     <main class="dashboard">
-      <!-- Заголовок + кнопки экспорта -->
       <header class="top-bar">
         <h2>Отчёты</h2>
-        <div class="export-buttons">
-          <button class="export-btn pdf"><i class="fas fa-file-pdf"></i> PDF</button>
-          <button class="export-btn excel"><i class="fas fa-file-excel"></i> Excel</button>
-        </div>
       </header>
 
-      <!-- Переключатель вкладок -->
-      <div class="tabs-wrapper">
-        <button class="tab-button active" data-tab="expenses">
-          <i class="fas fa-money-bill-wave"></i> Затраты
-        </button>
-        <button class="tab-button" data-tab="maintenance">
-          <i class="fas fa-clipboard-check"></i> Обслуживание
-        </button>
-      </div>
-
-      <!-- Панель фильтров -->
-      <div class="filters-panel">
-        <div class="filters-row">
-          <!-- Оборудование -->
-          <div class="filter-group">
-            <label for="equipment">Оборудование:</label>
-            <select id="equipment" class="filter-select" multiple size="8">
-              <!-- Заполнится динамически -->
-            </select>
+      <section class="report-panel">
+        <div class="controls">
+          <div class="toggle-buttons">
+            <button class="toggle-btn active" data-mode="expenses">📊 Отчёты по затратам</button>
+            <button class="toggle-btn" data-mode="maintenance">🛠️ Отчёты по обслуживанию</button>
           </div>
         </div>
 
-        <!-- Вкладка затрат -->
         <div class="tab-content active" id="expenses">
           <div class="filters">
             <label>Начало: <input type="date" id="startDate"></label>
@@ -90,7 +68,6 @@
           </div>
         </div>
 
-        <!-- Вкладка обслуживания -->
         <div class="tab-content" id="maintenance">
           <div class="filters">
             <label>Начало: <input type="date" id="maintStart"></label>
@@ -126,7 +103,6 @@
   </div>
 
 <script>
-  // ===== Переключение вкладок =====
   document.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
@@ -136,7 +112,6 @@
     });
   });
 
-  // ====== ЗАТРАТЫ ======
   function loadExpenses() {
     const start = document.getElementById('startDate').value;
     const end = document.getElementById('endDate').value;
@@ -186,7 +161,6 @@
     doc.save("expenses_report.pdf");
   }
 
-  // ====== ОБСЛУЖИВАНИЕ ======
   function loadMaintenance() {
     const start = document.getElementById('maintStart').value;
     const end = document.getElementById('maintEnd').value;
@@ -199,7 +173,7 @@
         tbody.innerHTML = "";
         data.forEach(row => {
           const tr = document.createElement('tr');
-          tr.dataset.id = row.request_id; // сохраняем id в атрибут
+          tr.dataset.id = row.request_id; 
           tr.innerHTML = `
             <td>${row.date}</td>
             <td>${row.client}</td>
@@ -235,19 +209,18 @@
     document.querySelectorAll("#maintenanceTable tbody tr").forEach(tr => {
       let cells = tr.querySelectorAll("td");
       rows.push([
-        cells[0].innerText, // дата
-        cells[1].innerText, // организация
-        cells[2].innerText, // фио
-        cells[3].innerText, // деталь
-        cells[4].innerText, // стоимость
-        cells[5].innerText  // мастер
+        cells[0].innerText, 
+        cells[1].innerText, 
+        cells[2].innerText, 
+        cells[3].innerText, 
+        cells[4].innerText, 
+        cells[5].innerText  
       ]);
     });
     doc.autoTable({ head: [['Дата', 'Организация', 'ФИО', 'Деталь', 'Стоимость', 'Мастер']], body: rows });
     doc.save("maintenance_report.pdf");
   }
 
-  // ====== История действий ======
   function showLog(requestId) {
     if (!requestId) {
       alert("Нет ID заявки для истории");
@@ -279,5 +252,6 @@
       .catch(err => console.error(err));
   }
 </script>
+
 </body>
 </html>
