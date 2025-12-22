@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -30,7 +31,6 @@
     </div>
   </div>
 
-  <!-- Модалка оплаты -->
   <div id="paymentModalOverlay" class="modal-overlay hidden">
     <div class="modal-window">
       <span class="modal-close" onclick="document.getElementById('paymentModalOverlay').classList.add('hidden')">&times;</span>
@@ -145,24 +145,21 @@
       return "";
     }
 
-    // Автоматическое форматирование номера карты
     const cardNumberInput = document.getElementById("cardNumber");
     cardNumberInput.addEventListener("input", () => {
-      let value = cardNumberInput.value.replace(/\D/g, ""); // только цифры
-      value = value.substring(0, 16); // максимум 16 цифр
+      let value = cardNumberInput.value.replace(/\D/g, ""); 
+      value = value.substring(0, 16); 
       let formatted = value.match(/.{1,4}/g);
       cardNumberInput.value = formatted ? formatted.join(" ") : "";
 
-      // определяем тип карты
       const cardType = getCardType(value);
       document.getElementById("modalCardType").textContent = cardType;
     });
 
-    // Автоматическое форматирование срока действия (MM/YY)
     const cardExpiryInput = document.getElementById("cardExpiry");
     cardExpiryInput.addEventListener("input", () => {
-      let value = cardExpiryInput.value.replace(/\D/g, ""); // только цифры
-      value = value.substring(0, 4); // максимум 4 цифры (MMYY)
+      let value = cardExpiryInput.value.replace(/\D/g, ""); 
+      value = value.substring(0, 4); 
 
       if (value.length >= 3) {
         cardExpiryInput.value = value.substring(0, 2) + "/" + value.substring(2);
