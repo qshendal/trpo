@@ -12,12 +12,14 @@
     .tab-content.active { display: block; }
     .log-block { margin-top:10px; padding:10px; border:1px solid #ccc; background:#fafafa; }
   </style>
+
 </head>
 <body>
   <div class="container">
+    <!-- Боковое меню -->
     <aside class="sidebar">
       <h1 class="logo">🔧 ТехОбслуживание</h1>
-      <p class="subtitle">Управление техникой</p>
+      <p class="subtitle">Отчёты</p>
       <nav class="menu">
         <ul>
           <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
@@ -29,16 +31,36 @@
       </nav>
     </aside>
 
+    <!-- Основная панель -->
     <main class="dashboard">
+      <!-- Заголовок + кнопки экспорта -->
       <header class="top-bar">
         <h2>Отчёты</h2>
+        <div class="export-buttons">
+          <button class="export-btn pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+          <button class="export-btn excel"><i class="fas fa-file-excel"></i> Excel</button>
+        </div>
       </header>
 
-      <section class="report-panel">
-        <div class="controls">
-          <div class="toggle-buttons">
-            <button class="toggle-btn active" data-mode="expenses">📊 Отчёты по затратам</button>
-            <button class="toggle-btn" data-mode="maintenance">🛠️ Отчёты по обслуживанию</button>
+      <!-- Переключатель вкладок -->
+      <div class="tabs-wrapper">
+        <button class="tab-button active" data-tab="expenses">
+          <i class="fas fa-money-bill-wave"></i> Затраты
+        </button>
+        <button class="tab-button" data-tab="maintenance">
+          <i class="fas fa-clipboard-check"></i> Обслуживание
+        </button>
+      </div>
+
+      <!-- Панель фильтров -->
+      <div class="filters-panel">
+        <div class="filters-row">
+          <!-- Оборудование -->
+          <div class="filter-group">
+            <label for="equipment">Оборудование:</label>
+            <select id="equipment" class="filter-select" multiple size="8">
+              <!-- Заполнится динамически -->
+            </select>
           </div>
         </div>
 
@@ -257,6 +279,5 @@
       .catch(err => console.error(err));
   }
 </script>
-
 </body>
 </html>
