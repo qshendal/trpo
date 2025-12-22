@@ -21,11 +21,22 @@ a {
 }
 
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 240px;
+  height: 100vh; /* растягиваем на всю высоту экрана */
   background-color: #182e47;
   color: #fff;
   padding: 20px;
+  overflow-y: auto; /* если меню длинное, добавится скролл */
 }
+
+.dashboard {
+  margin-left: 240px; /* ширина сайдбара */
+  padding: 15px;
+}
+
 
 .logo {
   font-size: 20px;
@@ -374,4 +385,51 @@ button:active {
 @keyframes slideUp {
   from { transform: translateY(40px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+/* ===== Бейджи статусов ===== */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.status-badge.awaiting {
+  background-color: #f1c40f;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(241, 196, 15, 0.4);
+}
+
+.status-badge.paid {
+  background-color: #2ecc71;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(46, 204, 113, 0.4);
+}
+
+.status-badge.completed {
+  background-color: #3498db;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(52, 152, 219, 0.4);
+}
+
+.calendar-section {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.calendar-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #182e47;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 6px;
 }
