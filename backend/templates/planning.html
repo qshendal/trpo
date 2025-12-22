@@ -31,15 +31,30 @@
       </div>
 
       <div class="tab-content active" id="calendar">
-        <div id="calendarTasks" class="calendar-tasks"></div>
+        <div class="calendar-section">
+          <h3>🔧 В работе</h3>
+          <div id="calendarTasks" class="calendar-tasks"></div>
+        </div>
+
+        <div class="calendar-section">
+          <h3>💰 Ожидают оплаты</h3>
+          <div id="awaitingPaymentTasks" class="calendar-tasks"></div>
+        </div>
+
+        <div class="calendar-section">
+          <h3>✅ Завершённые</h3>
+          <div id="completedTasks" class="calendar-tasks"></div>
+        </div>
       </div>
 
       <div class="tab-content" id="requests">
         <div id="requestCards" class="request-cards"></div>
       </div>
+
     </main>
   </div>
 
+  <!-- Модалка информации о заявке -->
   <div id="modalOverlay" class="modal-overlay hidden">
     <div class="modal-window">
       <span class="modal-close">&times;</span>
@@ -81,6 +96,7 @@
     </div>
   </div>
 
+  <!-- Модалка назначения мастеров -->
   <div id="assignModalOverlay" class="modal-overlay hidden">
     <div class="modal-window">
       <span class="modal-close" onclick="document.getElementById('assignModalOverlay').classList.add('hidden')">&times;</span>
@@ -92,6 +108,7 @@
     </div>
   </div>
 
+  <!-- Модалка добавления деталей -->
   <div id="partsModalOverlay" class="modal-overlay hidden">
     <div class="modal-window">
       <span class="modal-close" onclick="document.getElementById('partsModalOverlay').classList.add('hidden')">&times;</span>
@@ -102,9 +119,6 @@
       </div>
     </div>
   </div>
-</body>
-</html>
-
 
 
 <script>
@@ -128,70 +142,145 @@
   }
 
 function loadCalendarTasks() {
-  const container = document.getElementById("calendarTasks");
-  container.innerHTML = "";
   fetch('/api/calendar-tasks')
     .then(res => res.json())
     .then(data => {
-      if (!Array.isArray(data) || data.length === 0) {
-        container.innerHTML = "<p>Нет запланированных работ.</p>";
-        return;
+      // активные
+      renderTasks(data.active, document.getElementById("calendarTasks"), "active");
+      // ожидают оплаты (включая оплаченные)
+      renderTasks(data.awaiting_payment, document.getElementById("awaitingPaymentTasks"), "awaiting_payment");
+      // завершённые
+      if (document.getElementById("completedTasks")) {
+        renderTasks(data.completed, document.getElementById("completedTasks"), "completed");
       }
-      data.forEach(task => {
-        const card = document.createElement("div");
-        card.className = "calendar-card";
-        card.innerHTML = `
-          <h3>${task.name}</h3>
-          <p><strong>Дата заявки:</strong> ${task.deadline}</p>
-          <p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>
-          <p><strong>Приоритет:</strong> ${task.priority}</p>
-          <p><strong>Назначенная деталь:</strong> ${
-            task.assignedPart
-              ? `${task.assignedPart.name} (${task.assignedPart.qty} шт.)`
-              : "Не назначена"
-          }</p>
-          <div class="calendar-actions">
-            ${task.executor
-              ? `<button class="unassign-master-btn">Отвязать мастера</button>`
-              : `<button class="assign-btn">Назначить специалиста</button>`}
-            ${task.assignedPart
-              ? `<button class="unassign-part-btn">Отвязать деталь</button>`
-              : `<button class="parts-btn">Добавить детали</button>`}
-            <button class="done-btn">Отметить как выполнена</button>
-          </div>
-        `;
-
-        if (!task.executor) {
-          card.querySelector(".assign-btn").addEventListener("click", () => openAssignModal(task));
-        } else {
-          card.querySelector(".unassign-master-btn").addEventListener("click", () => {
-            fetch(`/api/unassign-master/${task.id}`, { method: "POST" })
-              .then(() => loadCalendarTasks());
-          });
-        }
-
-        if (!task.assignedPart) {
-          card.querySelector(".parts-btn").addEventListener("click", () => openPartsModal(task));
-        } else {
-          card.querySelector(".unassign-part-btn").addEventListener("click", () => {
-            fetch(`/api/unassign-part/${task.id}`, { method: "POST" })
-              .then(() => loadCalendarTasks());
-          });
-        }
-
-        card.querySelector(".done-btn").addEventListener("click", () => {
-          fetch(`/api/complete-task/${task.id}`, { method: "POST" })
-            .then(() => loadCalendarTasks());
-        });
-
-        container.appendChild(card);
-      });
     })
     .catch(() => {
-      container.innerHTML = "<p>Ошибка при загрузке работ.</p>";
+      document.getElementById("calendarTasks").innerHTML = "<p>Ошибка при загрузке работ.</p>";
     });
 }
 
+function renderTasks(tasks, container, type) {
+  container.innerHTML = "";
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    container.innerHTML = "<p>Нет задач.</p>";
+    return;
+  }
+
+  tasks.forEach(task => {
+    const card = document.createElement("div");
+    card.className = "calendar-card";
+    card.innerHTML = `
+      <h3>${task.name}</h3>
+      <p><strong>Дата заявки:</strong> ${task.deadline}</p>
+      <p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>
+      <p><strong>Приоритет:</strong> ${task.priority}</p>
+      <p><strong>Назначенная деталь:</strong> ${
+        task.assignedPart
+          ? `${task.assignedPart.name} (${task.assignedPart.qty} шт.)`
+          : "Не назначена"
+      }</p>
+      <div class="calendar-actions"></div>
+    `;
+
+    const actions = card.querySelector(".calendar-actions");
+
+    // === В работе ===
+    if (type === "active") {
+      if (!task.executor) {
+        const assignBtn = document.createElement("button");
+        assignBtn.className = "assign-btn";
+        assignBtn.textContent = "Назначить специалиста";
+        assignBtn.onclick = () => openAssignModal(task);
+        actions.appendChild(assignBtn);
+      } else {
+        const unassignBtn = document.createElement("button");
+        unassignBtn.className = "unassign-master-btn";
+        unassignBtn.textContent = "Отвязать мастера";
+        unassignBtn.onclick = () => {
+          fetch(`/api/unassign-master/${task.id}`, { method: "POST" })
+            .then(() => loadCalendarTasks());
+        };
+        actions.appendChild(unassignBtn);
+      }
+
+      if (!task.assignedPart) {
+        const partsBtn = document.createElement("button");
+        partsBtn.className = "parts-btn";
+        partsBtn.textContent = "Добавить детали";
+        partsBtn.onclick = () => openPartsModal(task);
+        actions.appendChild(partsBtn);
+      } else {
+        const unassignPartBtn = document.createElement("button");
+        unassignPartBtn.className = "unassign-part-btn";
+        unassignPartBtn.textContent = "Отвязать деталь";
+        unassignPartBtn.onclick = () => {
+          fetch(`/api/unassign-part/${task.id}`, { method: "POST" })
+            .then(() => loadCalendarTasks());
+        };
+        actions.appendChild(unassignPartBtn);
+      }
+
+      const doneBtn = document.createElement("button");
+      doneBtn.className = "done-btn";
+      doneBtn.textContent = "Отметить как выполнена";
+      doneBtn.onclick = () => {
+        if (!task.executor || !task.assignedPart) {
+          alert("Чтобы завершить работу, нужно назначить мастера и деталь.");
+          return;
+        }
+        fetch(`/api/complete-task/${task.id}`, { method: "POST" })
+          .then(() => loadCalendarTasks());
+      };
+      actions.appendChild(doneBtn);
+    }
+
+    // === В ожидании оплаты (включая оплаченные и гостевые) ===
+    else if (type === "awaiting_payment") {
+      const badge = document.createElement("span");
+      badge.className = "status-badge awaiting";
+
+      if (task.type === "оплачено") {
+        badge.textContent = "Оплачено";
+      } else {
+        badge.textContent = "В ожидании оплаты";
+      }
+      actions.appendChild(badge);
+
+      if (task.type === "оплачено" || !task.users_id) {
+        const finalizeBtn = document.createElement("button");
+        finalizeBtn.className = "done-btn";
+        finalizeBtn.textContent = "Завершить работу";
+        finalizeBtn.onclick = () => {
+          fetch(`/api/finalize-task/${task.id}`, { method: "POST" })
+            .then(() => loadCalendarTasks());
+        };
+        actions.appendChild(finalizeBtn);
+      }
+    }
+
+    // === Завершена ===
+    else if (type === "completed") {
+      const badge = document.createElement("span");
+      badge.className = "status-badge completed";
+      badge.textContent = "Завершено";
+      actions.appendChild(badge);
+
+      // кнопка удалить
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-btn";
+      deleteBtn.textContent = "Удалить";
+      deleteBtn.onclick = () => {
+        if (confirm("Удалить эту задачу и все связанные данные?")) {
+          fetch(`/api/delete-task/${task.id}`, { method: "DELETE" })
+            .then(() => loadCalendarTasks());
+        }
+      };
+      actions.appendChild(deleteBtn);
+    }
+
+    container.appendChild(card);
+  });
+}
 
 
   function loadRequests() {
@@ -309,41 +398,63 @@ function loadCalendarTasks() {
     activateTab("calendar");
   });
 
-  function openAssignModal(task) {
-    currentTask = task;
-    const modal = document.getElementById("assignModalOverlay");
-    const list = document.getElementById("mastersList");
-    list.innerHTML = "";
-    fetch("/api/masters")
-      .then(res => res.json())
-      .then(data => {
-        data.forEach(master => {
-          const item = document.createElement("div");
-          item.className = "master-item";
-          item.innerHTML = `
-            <label>
-              <input type="checkbox" value="${master.id}">
-              ${master.name} — ${master.specialty}, ${master.phone}
-            </label>
-          `;
-          list.appendChild(item);
-        });
+function openAssignModal(task) {
+  currentTask = task;
+  const modal = document.getElementById("assignModalOverlay");
+  const list = document.getElementById("mastersList");
+  list.innerHTML = "";
+
+  // загрузка мастеров
+  fetch("/api/masters")
+    .then(res => {
+      if (!res.ok) throw new Error("Ошибка сервера: " + res.status);
+      return res.json();
+    })
+    .then(data => {
+      data.forEach(master => {
+        const item = document.createElement("div");
+        item.className = "master-item";
+        item.innerHTML = `
+          <label>
+            <input type="checkbox" value="${master.id}">
+            ${master.name} — ${master.specialty}, ${master.phone}
+          </label>
+        `;
+        list.appendChild(item);
       });
-    document.getElementById("saveAssignBtn").onclick = () => {
-      const selected = Array.from(list.querySelectorAll("input:checked")).map(cb => cb.value);
-      fetch(`/api/assign-masters/${task.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ masters: selected })
-      })
-      .then(res => res.json())
-      .then(data => {
-        modal.classList.add("hidden");
-        loadCalendarTasks();
-      });
-    };
-    modal.classList.remove("hidden");
-  }
+    })
+    .catch(err => {
+      console.error("Ошибка при загрузке мастеров:", err);
+      alert("Не удалось загрузить список мастеров.");
+    });
+
+  // сохранение выбранного мастера
+  document.getElementById("saveAssignBtn").onclick = () => {
+    const selected = Array.from(list.querySelectorAll("input:checked")).map(cb => cb.value);
+
+    fetch(`/api/assign-masters/${currentTask.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ masters: selected })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Ошибка сервера: " + res.status);
+      return res.json();
+    })
+    .then(data => {
+      console.log("Назначенные мастера:", data);
+      modal.classList.add("hidden");
+      loadCalendarTasks();
+    })
+    .catch(err => {
+      console.error("Ошибка при назначении мастера:", err);
+      alert("Не удалось назначить мастера. Попробуйте ещё раз.");
+    });
+  };
+
+  modal.classList.remove("hidden");
+}
+
 
 function openPartsModal(task) {
   currentTask = task;
@@ -366,6 +477,17 @@ function openPartsModal(task) {
         list.appendChild(item);
       });
     });
+
+function completeTask(id) {
+  fetch(`/api/complete-task/${id}`, { method: "POST" })
+    .then(res => res.json())
+    .then(() => loadCalendarTasks())
+    .catch(err => {
+      console.error("Ошибка при переводе в ожидание оплаты:", err);
+      alert("Не удалось отметить как выполнено. Попробуйте ещё раз.");
+    });
+}
+
 
   document.getElementById("savePartsBtn").onclick = () => {
     const selected = document.querySelector("input[name='partSelect']:checked");

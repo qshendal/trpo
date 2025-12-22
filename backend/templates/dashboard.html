@@ -81,86 +81,108 @@
   </div>
 
   <script>
-    function addTaskCard({ name, type, deadline, priorityText, priorityClass }) {
-      const card = document.createElement('div');
-      card.className = 'task-subcard';
+  // Карточка задачи обслуживания
+  function addTaskCard({ name, type, deadline, priorityText, priorityClass }) {
+    const card = document.createElement('div');
+    card.className = 'task-subcard';
 
-      const left = document.createElement('div');
-      left.className = 'task-subcard-left';
+    const left = document.createElement('div');
+    left.className = 'task-subcard-left';
 
-      const nameEl = document.createElement('div');
-      nameEl.className = 'task-name';
-      nameEl.textContent = name;
-      left.appendChild(nameEl);
+    const nameEl = document.createElement('div');
+    nameEl.className = 'task-name';
+    nameEl.textContent = name;
+    left.appendChild(nameEl);
 
-      const typeEl = document.createElement('div');
-      typeEl.className = 'task-type';
-      typeEl.textContent = type;
-      left.appendChild(typeEl);
+    const typeEl = document.createElement('div');
+    typeEl.className = 'task-type';
+    typeEl.textContent = type;
+    left.appendChild(typeEl);
 
-      const deadlineEl = document.createElement('div');
-      deadlineEl.className = 'task-deadline';
-      deadlineEl.textContent = deadline;
-      left.appendChild(deadlineEl);
+    const deadlineEl = document.createElement('div');
+    deadlineEl.className = 'task-deadline';
+    deadlineEl.textContent = deadline;
+    left.appendChild(deadlineEl);
 
-      const right = document.createElement('div');
-      right.className = 'task-subcard-right';
+    const right = document.createElement('div');
+    right.className = 'task-subcard-right';
 
-      const priorityBlock = document.createElement('div');
-      priorityBlock.className = `task-priority ${priorityClass}`;
-      priorityBlock.textContent = priorityText;
-      right.appendChild(priorityBlock);
+    const priorityBlock = document.createElement('div');
+    priorityBlock.className = `task-priority ${priorityClass}`;
+    priorityBlock.textContent = priorityText;
+    right.appendChild(priorityBlock);
 
-      card.appendChild(left);
-      card.appendChild(right);
+    card.appendChild(left);
+    card.appendChild(right);
 
-      document.getElementById('maintenanceTasks').appendChild(card);
-    }
+    document.getElementById('maintenanceTasks').appendChild(card);
+  }
 
-      function addStockCard({ название, количество, порог }) {
-        const card = document.createElement('div');
-        card.className = 'task-subcard low-stock';
+  // Карточка склада
+  function addStockCard({ название, количество, порог }) {
+    const card = document.createElement('div');
+    card.className = 'task-subcard low-stock';
 
-        const left = document.createElement('div');
-        left.className = 'task-subcard-left';
+    const left = document.createElement('div');
+    left.className = 'task-subcard-left';
 
-        const nameEl = document.createElement('div');
-        nameEl.className = 'task-name';
-        nameEl.textContent = название;
-        left.appendChild(nameEl);
+    const nameEl = document.createElement('div');
+    nameEl.className = 'task-name';
+    nameEl.textContent = название;
+    left.appendChild(nameEl);
 
-        const currentEl = document.createElement('div');
-        currentEl.className = 'task-type';
-        currentEl.textContent = `Текущий запас: ${количество}`;
-        left.appendChild(currentEl);
+    const currentEl = document.createElement('div');
+    currentEl.className = 'task-type';
+    currentEl.textContent = `Текущий запас: ${количество}`;
+    left.appendChild(currentEl);
 
-        const minimumEl = document.createElement('div');
-        minimumEl.className = 'task-deadline';
-        minimumEl.textContent = `Минимум: ${порог}`;
-        left.appendChild(minimumEl);
+    const minimumEl = document.createElement('div');
+    minimumEl.className = 'task-deadline';
+    minimumEl.textContent = `Минимум: ${порог}`;
+    left.appendChild(minimumEl);
 
-        card.appendChild(left);
-        document.getElementById('lowStockAlerts').appendChild(card);
-      }
+    card.appendChild(left);
+    document.getElementById('lowStockAlerts').appendChild(card);
+  }
 
-    fetch('/api/active-requests')
-      .then(res => res.json())
-      .then(tasks => {
-        tasks.forEach(task => addTaskCard(task));
-      });
+  // === Запросы к API ===
 
-    fetch('/api/active-count')
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById('activeCount').textContent = data.count;
-      });
+  // Активные задачи
+  fetch('/api/active-requests')
+    .then(res => res.json())
+    .then(tasks => {
+      tasks.forEach(task => addTaskCard(task));
+    });
 
-    fetch('/api/low-stock')
-      .then(res => res.json())
-      .then(parts => {
-        document.getElementById('lowStockCount').textContent = parts.length;
-        parts.forEach(part => addStockCard(part));
-      });
-  </script>
+  // Количество активных задач
+  fetch('/api/active-count')
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('activeCount').textContent = data.count;
+    });
+
+  // Малые запасы
+  fetch('/api/low-stock')
+    .then(res => res.json())
+    .then(parts => {
+      document.getElementById('lowStockCount').textContent = parts.length;
+      parts.forEach(part => addStockCard(part));
+    });
+
+  // Расходы за месяц
+  fetch('/api/monthly-expenses')
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('monthlyExpenses').textContent = data.total;
+    });
+
+  // Количество мастеров
+  fetch('/api/technician-count')
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('technicianCount').textContent = data.count;
+    });
+</script>
+
 </body>
 </html>

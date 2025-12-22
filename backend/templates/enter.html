@@ -9,22 +9,29 @@
 <body>
   <div class="auth-wrapper">
     <h2>Выберите способ входа</h2>
-      <div class="auth-buttons">
-        <form action="{{ url_for('client.guest_entry') }}" method="get">
-          <button type="submit" class="action-btn">Продолжить как гость</button>
-        </form>
-        <form action="{{ url_for('client.registration') }}" method="get">
-          <button type="submit" class="action-btn">Войти</button>
-        </form>
-      </div>
-<script>
-  const errorText = "{{ login_error }}";
-  const popup = document.getElementById("loginErrorPopup");
+    <div class="auth-buttons">
+      <form action="{{ url_for('client.guest_entry') }}" method="get">
+        <button type="submit" class="action-btn">Продолжить как гость</button>
+      </form>
+      <form action="{{ url_for('client.registration') }}" method="get">
+        <button type="submit" class="action-btn">Войти</button>
+      </form>
+    </div>
 
-  if (errorText) {
-    popup.classList.remove("hidden");
-    setTimeout(() => popup.classList.add("hidden"), 3000);
-  }
-</script>
+    <!-- Блок для ошибки -->
+    <div id="loginErrorPopup" class="hidden">
+      {{ login_error }}
+    </div>
+  </div>
+
+  <script>
+    const errorText = "{{ login_error }}";
+    const popup = document.getElementById("loginErrorPopup");
+
+    if (errorText && popup) {
+      popup.classList.remove("hidden");
+      setTimeout(() => popup.classList.add("hidden"), 3000);
+    }
+  </script>
 </body>
 </html>

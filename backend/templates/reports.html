@@ -5,6 +5,13 @@
   <title>ТехОбслуживание — Отчёты</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='Reports.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .log-block { margin-top:10px; padding:10px; border:1px solid #ccc; background:#fafafa; }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -33,30 +40,223 @@
             <button class="toggle-btn active" data-mode="expenses">📊 Отчёты по затратам</button>
             <button class="toggle-btn" data-mode="maintenance">🛠️ Отчёты по обслуживанию</button>
           </div>
-
-          <button class="apply-btn"><i class="fas fa-filter"></i> Применить фильтры</button>
         </div>
 
+        <!-- Вкладка затрат -->
         <div class="tab-content active" id="expenses">
-          <div id="expensesContent" class="calendar-tasks">
+          <div class="filters">
+            <label>Начало: <input type="date" id="startDate"></label>
+            <label>Конец: <input type="date" id="endDate"></label>
+            <button onclick="loadExpenses()"><i class="fas fa-filter"></i> Сформировать</button>
+          </div>
+
+          <div id="reportBlock" style="display:none;">
+            <table class="report-table" id="expensesTable">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Сумма расходов</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+
+            <div class="export-buttons">
+              <button onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+              <button onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
           </div>
         </div>
 
+        <!-- Вкладка обслуживания -->
         <div class="tab-content" id="maintenance">
-          <div id="maintenanceContent" class="calendar-tasks">
+          <div class="filters">
+            <label>Начало: <input type="date" id="maintStart"></label>
+            <label>Конец: <input type="date" id="maintEnd"></label>
+            <button onclick="loadMaintenance()"><i class="fas fa-filter"></i> Сформировать</button>
           </div>
-          <script>
+
+          <div id="maintenanceBlock" style="display:none;">
+            <table class="report-table" id="maintenanceTable">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Организация</th>
+                  <th>ФИО</th>
+                  <th>Деталь</th>
+                  <th>Стоимость</th>
+                  <th>Мастер</th>
+                  <th>История</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+
+            <div class="export-buttons">
+              <button onclick="exportMaintenanceExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+              <button onclick="exportMaintenancePDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+<script>
+  // ===== Переключение вкладок =====
   document.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(btn.dataset.mode).classList.add('active');
     });
   });
+
+  // ====== ЗАТРАТЫ ======
+  function loadExpenses() {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    if (!start || !end) { alert("Выберите период!"); return; }
+
+    fetch(`/api/expenses-by-day?start=${start}&end=${end}`)
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.querySelector('#expensesTable tbody');
+        tbody.innerHTML = "";
+        let total = 0;
+        data.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${row.date}</td><td>${row.amount}</td>`;
+          tbody.appendChild(tr);
+          total += parseFloat(row.amount);
+        });
+        const trTotal = document.createElement('tr');
+        trTotal.innerHTML = `<td><b>Итого</b></td><td><b>${total}</b></td>`;
+        tbody.appendChild(trTotal);
+        document.getElementById('reportBlock').style.display = "block";
+      });
+  }
+
+  function exportToExcel() {
+    let table = document.getElementById("expensesTable");
+    let html = table.outerHTML;
+    let blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'expenses_report.xls';
+    a.click();
+  }
+
+  function exportToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFont("Times", "normal");
+    doc.text("Отчёт по затратам", 10, 10);
+    let rows = [];
+    document.querySelectorAll("#expensesTable tbody tr").forEach(tr => {
+      let cells = tr.querySelectorAll("td");
+      rows.push([cells[0].innerText, cells[1].innerText]);
+    });
+    doc.autoTable({ head: [['Дата', 'Сумма']], body: rows });
+    doc.save("expenses_report.pdf");
+  }
+
+  // ====== ОБСЛУЖИВАНИЕ ======
+  function loadMaintenance() {
+    const start = document.getElementById('maintStart').value;
+    const end = document.getElementById('maintEnd').value;
+    if (!start || !end) { alert("Выберите период!"); return; }
+
+    fetch(`/api/maintenance-report?start=${start}&end=${end}`)
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.querySelector('#maintenanceTable tbody');
+        tbody.innerHTML = "";
+        data.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.dataset.id = row.request_id; // сохраняем id в атрибут
+          tr.innerHTML = `
+            <td>${row.date}</td>
+            <td>${row.client}</td>
+            <td>${row.contact_person}</td>
+            <td>${row.parts}</td>
+            <td>${row.amount}</td>
+            <td>${row.technician}</td>
+            <td><button onclick="showLog(${row.request_id})">История</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+        document.getElementById('maintenanceBlock').style.display = "block";
+      });
+  }
+
+  function exportMaintenanceExcel() {
+    let table = document.getElementById("maintenanceTable");
+    let html = table.outerHTML;
+    let blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'maintenance_report.xls';
+    a.click();
+  }
+
+  function exportMaintenancePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFont("Times", "normal");
+    doc.text("Отчёт по обслуживанию", 10, 10);
+    let rows = [];
+    document.querySelectorAll("#maintenanceTable tbody tr").forEach(tr => {
+      let cells = tr.querySelectorAll("td");
+      rows.push([
+        cells[0].innerText, // дата
+        cells[1].innerText, // организация
+        cells[2].innerText, // фио
+        cells[3].innerText, // деталь
+        cells[4].innerText, // стоимость
+        cells[5].innerText  // мастер
+      ]);
+    });
+    doc.autoTable({ head: [['Дата', 'Организация', 'ФИО', 'Деталь', 'Стоимость', 'Мастер']], body: rows });
+    doc.save("maintenance_report.pdf");
+  }
+
+  // ====== История действий ======
+  function showLog(requestId) {
+    if (!requestId) {
+      alert("Нет ID заявки для истории");
+      return;
+    }
+    fetch(`/api/work-log/${requestId}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Ошибка загрузки истории");
+        return res.json();
+      })
+      .then(logs => {
+        let block = document.createElement('div');
+        block.className = "log-block";
+        if (!logs || logs.length === 0) {
+          block.innerHTML = "<p>История пуста.</p>";
+        } else {
+          let html = "<h4>История действий</h4><ul>";
+          logs.forEach(l => {
+            html += `<li><b>${l.дата}</b>: ${l.описание}${l.исполнитель ? " — " + l.исполнитель : ""}</li>`;
+          });
+          html += "</ul>";
+          block.innerHTML = html;
+        }
+        const row = document.querySelector(`#maintenanceTable tbody tr[data-id="${requestId}"]`);
+        if (row) {
+          row.after(block);
+        }
+      })
+      .catch(err => console.error(err));
+  }
 </script>
 
-        </div>
-      </section>
-    </main>
-  </div>
 </body>
 </html>

@@ -30,6 +30,32 @@
     </div>
   </div>
 
+  <!-- Модалка оплаты -->
+  <div id="paymentModalOverlay" class="modal-overlay hidden">
+    <div class="modal-window">
+      <span class="modal-close" onclick="document.getElementById('paymentModalOverlay').classList.add('hidden')">&times;</span>
+      <h2>Оплата заявки</h2>
+      <div class="modal-content">
+        <p><strong>Название:</strong> <span id="modalTaskName"></span></p>
+        <p><strong>Дата заявки:</strong> <span id="modalTaskDeadline"></span></p>
+        <p><strong>Описание:</strong> <span id="modalTaskDescription"></span></p>
+        <p><strong>Исполнитель:</strong> <span id="modalTaskExecutor"></span></p>
+        <p><strong>Сумма к оплате:</strong> <span id="modalTaskCost"></span> руб.</p>
+        <p><strong>Тип карты:</strong> <span id="modalCardType"></span></p>
+        <hr>
+        <label>Введите данные карты:</label>
+        <div class="card-form">
+          <input type="text" id="cardNumber" placeholder="Номер карты" maxlength="19">
+          <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+          <input type="text" id="cardCVC" placeholder="CVC" maxlength="3">
+        </div>
+        <div class="modal-actions">
+          <button id="confirmPaymentBtn" class="action-btn">Подтвердить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const pendingContainer = document.getElementById("pendingRequests");
@@ -56,6 +82,8 @@
           paymentContainer.innerHTML = "";
 
           data.forEach(task => {
+            const status = task.type.toLowerCase();
+
             const card = document.createElement("div");
             card.className = "request-card";
             card.innerHTML = `
@@ -63,15 +91,22 @@
               <p><strong>Статус:</strong> ${task.type}</p>
               <p><strong>Дата заявки:</strong> ${task.deadline}</p>
               <p><strong>Описание:</strong> ${task.description}</p>
+              ${status !== "новая" && status !== "в ожидании"
+                ? `<p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>`
+                : ""}
             `;
-
-            const status = task.type.toLowerCase();
 
             if (status === "новая" || status === "в ожидании") {
               pendingContainer.appendChild(card);
             } else if (status === "в работе") {
               inProgressContainer.appendChild(card);
             } else if (status === "в ожидании оплаты") {
+              const payBtn = document.createElement("button");
+              payBtn.className = "action-btn";
+              payBtn.textContent = "Оплатить";
+              payBtn.onclick = () => openPaymentModal(task);
+              card.appendChild(payBtn);
+
               paymentContainer.appendChild(card);
             }
           });
@@ -81,6 +116,107 @@
           pendingContainer.innerHTML = "<p>Не удалось загрузить заявки. Попробуйте позже.</p>";
           inProgressContainer.innerHTML = "";
           paymentContainer.innerHTML = "";
+        });
+    });
+
+    function openPaymentModal(task) {
+      document.getElementById("modalTaskName").textContent = task.name || "";
+      document.getElementById("modalTaskName").dataset.requestId = task.id;
+      document.getElementById("modalTaskDeadline").textContent = task.deadline || "";
+      document.getElementById("modalTaskDescription").textContent = task.description || "";
+      document.getElementById("modalTaskExecutor").textContent = task.executor || "Не назначен";
+
+      fetch(`/api/request-cost/${task.id}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("modalTaskCost").textContent = data.total || 0;
+        })
+        .catch(() => {
+          document.getElementById("modalTaskCost").textContent = "Ошибка";
+        });
+
+      document.getElementById("paymentModalOverlay").classList.remove("hidden");
+    }
+
+    function getCardType(cardNumber) {
+      if (/^4/.test(cardNumber)) return "Visa";
+      if (/^5[1-5]/.test(cardNumber)) return "MasterCard";
+      if (/^2(2[2-9]|[3-6]|7[01]|720)/.test(cardNumber)) return "MasterCard";
+      return "";
+    }
+
+    // Автоматическое форматирование номера карты
+    const cardNumberInput = document.getElementById("cardNumber");
+    cardNumberInput.addEventListener("input", () => {
+      let value = cardNumberInput.value.replace(/\D/g, ""); // только цифры
+      value = value.substring(0, 16); // максимум 16 цифр
+      let formatted = value.match(/.{1,4}/g);
+      cardNumberInput.value = formatted ? formatted.join(" ") : "";
+
+      // определяем тип карты
+      const cardType = getCardType(value);
+      document.getElementById("modalCardType").textContent = cardType;
+    });
+
+    // Автоматическое форматирование срока действия (MM/YY)
+    const cardExpiryInput = document.getElementById("cardExpiry");
+    cardExpiryInput.addEventListener("input", () => {
+      let value = cardExpiryInput.value.replace(/\D/g, ""); // только цифры
+      value = value.substring(0, 4); // максимум 4 цифры (MMYY)
+
+      if (value.length >= 3) {
+        cardExpiryInput.value = value.substring(0, 2) + "/" + value.substring(2);
+      } else {
+        cardExpiryInput.value = value;
+      }
+    });
+
+    document.getElementById("confirmPaymentBtn").addEventListener("click", () => {
+      const cardNumberRaw = cardNumberInput.value.replace(/\s/g, "");
+      const cardExpiry = document.getElementById("cardExpiry").value.trim();
+      const cardCVC = document.getElementById("cardCVC").value.trim();
+
+      if (!/^\d{16}$/.test(cardNumberRaw)) {
+        alert("Введите корректный номер карты (16 цифр).");
+        return;
+      }
+      if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiry)) {
+        alert("Введите срок действия в формате MM/YY.");
+        return;
+      }
+      if (!/^\d{3}$/.test(cardCVC)) {
+        alert("Введите корректный CVC (3 цифры).");
+        return;
+      }
+
+      const cardType = getCardType(cardNumberRaw);
+      if (!cardType) {
+        alert("Номер карты не похож на Visa или MasterCard.");
+        return;
+      }
+
+      const requestId = document.getElementById("modalTaskName").dataset.requestId;
+
+      fetch(`/api/pay-request/${requestId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardNumber: cardNumberRaw, cardExpiry, cardCVC })
+      })
+        .then(res => {
+          if (!res.ok) throw new Error("Ошибка оплаты");
+          return res.json();
+        })
+        .then(data => {
+          if (data.success) {
+            alert(`Оплата прошла успешно! Тип карты: ${cardType}`);
+            document.getElementById("paymentModalOverlay").classList.add("hidden");
+            location.reload();
+          } else {
+            alert("Ошибка: " + data.error);
+          }
+        })
+        .catch(err => {
+          alert("Ошибка: " + err.message);
         });
     });
   </script>
