@@ -179,6 +179,7 @@ a {
   background-color: #f8fafc;
 }
 
+/* ===== История ===== */
 .log-block {
   margin-top: 10px;
   padding: 10px;
@@ -188,7 +189,7 @@ a {
 }
 
 .show-log-btn {
-  background-color: #3498db;
+  background-color: #3498db; /* синяя для "Показать историю" */
   color: #fff;
   border: none;
   padding: 6px 12px;
@@ -209,13 +210,14 @@ a {
 }
 
 .show-log-btn.hide {
-  background-color: #e74c3c;
+  background-color: #e74c3c; /* красная для "Скрыть историю" */
 }
 
 .show-log-btn.hide:hover {
   background-color: #c0392b;
 }
 
+/* ===== Переключатель вкладок ===== */
 .tabs-wrapper {
   display: inline-flex;
   border: 1px solid #cbd5e1;
@@ -244,18 +246,20 @@ a {
 }
 
 .tab-button.active {
-  background-color: #6d7173;
+  background-color: #6d7173; /* яркий синий для активной */
   color: white;
 }
 
+/* ===== Содержимое вкладок ===== */
 .tab-content {
-  display: none;
+  display: none;   /* скрыто по умолчанию */
 }
 
 .tab-content.active {
-  display: block;
+  display: block;  /* показываем только активную */
 }
 
+/* ===== Скрытые блоки ===== */
 .hidden {
   display: none;
 }
