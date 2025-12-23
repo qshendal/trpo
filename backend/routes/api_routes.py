@@ -858,14 +858,11 @@ def monthly_expenses():
     with open(EXPENSES_FILE, newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            # убираем BOM из ключей
             row = {k.strip("\ufeff"): v for k, v in row.items()}
             try:
                 try:
-                    # ISO формат YYYY-MM-DD
                     date_obj = datetime.date.fromisoformat(row["date"])
                 except ValueError:
-                    # Американский формат MM/DD/YYYY
                     date_obj = datetime.datetime.strptime(row["date"], "%m/%d/%Y").date()
 
                 if date_obj.month == current_month and date_obj.year == current_year:
@@ -912,64 +909,58 @@ def expenses_by_day():
             except Exception:
                 continue
 
-    # Сортируем по дате
+
     sorted_report = [{"date": d, "amount": daily_totals[d]} for d in sorted(daily_totals)]
     return jsonify(sorted_report)
 
-# Маршрут API для формирования отчёта по оборудованию
 @api_bp.route("/maintenance-report")
 def maintenance_report():
     import csv, datetime, os
     from flask import request, jsonify
 
-    # Получаем параметры дат из запроса (например, ?start=2025-01-01&end=2025-12-31)
+ 
     start_str = request.args.get("start")
     end_str = request.args.get("end")
 
-    # Преобразуем строки в объекты даты
     try:
         start_date = datetime.datetime.strptime(start_str, "%Y-%m-%d").date()
         end_date = datetime.datetime.strptime(end_str, "%Y-%m-%d").date()
     except Exception:
-        # Если формат даты неверный — возвращаем ошибку
+     
         return jsonify({"error": "Неверный формат даты"}), 400
 
-    records = []  # список для хранения отфильтрованных записей
+    records = []
 
-    # Проверяем, существует ли файл с данными
     if not os.path.exists(EXPENSES_FILE):
         return jsonify([])
-
-    # Открываем CSV-файл с данными о расходах/оборудовании
     with open(EXPENSES_FILE, newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            # Убираем BOM-символы из ключей
+
             row = {k.strip("\ufeff"): v for k, v in row.items()}
             try:
-                # Пробуем распарсить дату в разных форматах
+
                 try:
                     date_obj = datetime.datetime.strptime(row["date"], "%m/%d/%Y").date()
                 except ValueError:
                     date_obj = datetime.date.fromisoformat(row["date"])
 
-                # Фильтруем записи по диапазону дат
+
                 if start_date <= date_obj <= end_date:
-                    # Формируем объект с нужными полями
+                  
                     records.append({
-                        "id": row.get("request_id"),       # ID заявки
-                        "date": row.get("date"),           # Дата
-                        "client": row.get("client"),       # Клиент
-                        "contact_person": row.get("contact_person"), # Контактное лицо
-                        "parts": row.get("parts"),         # Использованные детали
-                        "amount": row.get("amount"),       # Сумма расходов
-                        "technician": row.get("technician")# Исполнитель
+                        "id": row.get("request_id"),     
+                        "date": row.get("date"),          
+                        "client": row.get("client"),      
+                        "contact_person": row.get("contact_person"), 
+                        "parts": row.get("parts"),       
+                        "amount": row.get("amount"),     
+                        "technician": row.get("technician")
                     })
             except Exception:
-                # Если ошибка при обработке строки — пропускаем её
+
                 continue
 
-    # Возвращаем список записей в формате JSON
     return jsonify(records)
 
 
@@ -979,17 +970,15 @@ def delete_task(request_id):
     conn = get_db()
     cur = conn.cursor()
     try:
-        # удаляем связанные детали
         cur.execute("DELETE FROM used_parts WHERE service_request_id = ?", (request_id,))
 
-        # удаляем саму заявку
         cur.execute("DELETE FROM service_request WHERE id = ?", (request_id,))
 
         conn.commit()
         return "", 204
     except Exception as e:
         conn.rollback()
-        print("Ошибка при удалении:", e)  # для отладки
+        print("Ошибка при удалении:", e)
         return {"error": str(e)}, 500
     finally:
         conn.close()
