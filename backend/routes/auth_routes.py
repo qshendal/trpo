@@ -38,6 +38,7 @@ def register():
         conn.close()
 
     session["role"] = "user"
+    session["user_name"] = name
     session["user_id"] = user_id
     return redirect(url_for("client.user_panel"))
 
@@ -69,6 +70,7 @@ def login():
         return render_template("enter.html", login_error="Неверный логин или пароль")
 
     session["user_id"] = user["id"]
+    session["user_name"] = user["name"]
 
     # Админа не трогаем — как было
     if user["name"].strip() == "admin_techservice" and user["password"].strip() == "123456":

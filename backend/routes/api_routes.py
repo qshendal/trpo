@@ -306,7 +306,8 @@ def api_calendar_tasks():
                     "priority": priority_text,
                     "assignedPart": assigned_part,
                     "users_id": row["users_id"],
-                    "type": row["статус"]  # важно: возвращаем статус!
+                    "type": row["статус"],
+                    "description": row["описание_проблемы"]  # <--- ВОТ ЭТУ СТРОКУ НУЖНО ДОБАВИТЬ!
                 })
         return tasks
 
@@ -431,20 +432,25 @@ def low_stock():
 @api_bp.route("/masters", methods=["GET"])
 def get_masters():
     conn = get_db()
+    conn.row_factory = sqlite3.Row # Это позволит обращаться к полям по именам
     cur = conn.cursor()
+    
+    # Выбираем мастеров и сразу считаем количество их активных заявок
     cur.execute("""
         SELECT 
-            id,
-            фио AS name,
-            специализация AS specialty,
-            телефон AS phone,
-            примечание AS comment
-        FROM technician
+            t.id,
+            t.фио AS name,
+            t.специализация AS specialty,
+            t.телефон AS phone,
+            t.примечание AS comment,
+            (SELECT COUNT(*) FROM service_request sr 
+             WHERE sr.technician_id = t.id AND sr.статус = 'в работе') AS active_tasks_count
+        FROM technician t
     """)
     rows = cur.fetchall()
     conn.close()
+    # Превращаем в список словарей для JSON
     return jsonify([dict(row) for row in rows])
-
 
 
 @api_bp.route("/add-master", methods=["POST"])
