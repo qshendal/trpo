@@ -1,182 +1,292 @@
+/* --- ПЕРЕМЕННЫЕ И БАЗА --- */
+:root {
+    --primary: #2563eb;
+    --primary-light: #eff6ff;
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --text-dark: #0f172a;
+    --text-light: #64748b;
+    --accent: #e2e8f0;
+    --pending: #f59e0b;
+    --progress: #3b82f6;
+    --success: #10b981;
+    --danger: #ef4444;
+    --radius: 18px;
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #f4f6fa, #e9edf5);
-  margin: 0;
-  padding: 40px;
-  color: #2c3e50;
+    background-color: var(--bg-main);
+    font-family: 'Manrope', sans-serif;
+    color: var(--text-dark);
+    margin: 0;
 }
 
-.requests-wrapper {
-  max-width: 900px;
-  margin: 0 auto;
+/* --- НАВИГАЦИЯ --- */
+.navbar {
+    background: white;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--accent);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.requests-wrapper h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #182e47;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
 }
 
-.request-card {
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  padding: 20px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.logo { font-weight: 800; display: flex; align-items: center; gap: 8px; }
+.logo span { color: var(--primary); }
+.logo-avatar { background: var(--primary); color: white; padding: 4px; border-radius: 6px; }
+
+/* --- ЗАГОЛОВОК СТРАНИЦЫ --- */
+.requests-page {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
 }
 
-.request-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+.page-header h2 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 30px;
 }
 
-.request-info h3 {
-  margin: 0 0 10px;
-  color: #2c4a70;
-  font-size: 20px;
+/* --- КАНБАН ДОСКА --- */
+.kanban-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    align-items: flex-start;
 }
 
-.request-info p {
-  margin: 4px 0;
-  font-size: 14px;
-  color: #555;
+.kanban-column {
+    background: #f1f5f9;
+    border-radius: var(--radius);
+    padding: 20px;
+    min-height: 500px;
 }
 
-.request-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+.column-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+    padding-left: 5px;
 }
 
-.action-btn {
-  padding: 10px 18px;
-  background: linear-gradient(135deg, #3498db, #2c4a70);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.pending .dot { background: var(--pending); box-shadow: 0 0 8px var(--pending); }
+.progress .dot { background: var(--progress); box-shadow: 0 0 8px var(--progress); }
+.payment .dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+
+/* --- КАРТОЧКА ЗАЯВКИ --- */
+.request-card-item {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
 }
 
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  background: linear-gradient(135deg, #2980b9, #1f3a5c);
+.request-card-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
 }
 
-.status-block {
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 20px 25px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
 }
 
-.status-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  border-bottom: 2px solid #eee;
-  padding-bottom: 5px;
-  color: #2c3e50;
+.card-id { font-size: 12px; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 2px 8px; border-radius: 5px; }
+.card-date { font-size: 12px; color: var(--text-light); }
+
+.request-card-item h4 { margin: 0 0 8px 0; font-weight: 800; font-size: 16px; }
+.request-card-item .desc { font-size: 14px; color: var(--text-light); margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.executor-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    background: #f8fafc;
+    padding: 8px;
+    border-radius: 10px;
+}
+/* --- СТИЛЬ КНОПКИ "НАЗАД" --- */
+.nav-btn.secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background-color: var(--white);
+    color: var(--text-dark);
+    border: 1.5px solid var(--accent);
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
 }
 
-.request-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+/* Эффекты при наведении */
+.nav-btn.secondary:hover {
+    background-color: var(--bg-main);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateX(-5px); /* Легкое смещение влево подчеркивает действие "Назад" */
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
 }
 
-.back-button {
-  display: inline-block;
-  margin-bottom: 20px;
-  padding: 8px 16px;
-  background-color: #182e47;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+/* Активное состояние (нажатие) */
+.nav-btn.secondary:active {
+    transform: scale(0.96) translateX(-5px);
 }
 
-.back-button:hover {
-  background-color: #2c4a70;
-  transform: translateY(-2px);
+/* Оптимизация для мобильных устройств */
+@media (max-width: 768px) {
+    .nav-btn.secondary {
+        width: 100%; /* На мобилках кнопка растягивается */
+        padding: 14px;
+        margin-bottom: 20px;
+    }
+}
+.pay-btn-small {
+    width: 100%;
+    margin-top: 15px;
+    padding: 10px;
+    border: none;
+    background: var(--success);
+    color: white;
+    border-radius: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
+.pay-btn-small:hover { opacity: 0.9; transform: scale(0.98); }
+
+/* --- МОДАЛЬНОЕ ОКНО ОПЛАТЫ --- */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(24, 46, 71, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.hidden {
-  display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: 0.3s;
 }
 
 .modal-window {
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  max-width: 520px;
-  width: 90%;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  position: relative;
-  animation: fadeIn 0.3s ease;
+    background: white;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 24px;
+    overflow: hidden;
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.modal-window h2 {
-  margin-top: 0;
-  color: #2c4a70;
-  font-size: 22px;
-  font-weight: 700;
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
-.modal-content p {
-  margin: 10px 0;
-  font-size: 15px;
-  color: #444;
+.modal-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 18px;
-  font-size: 26px;
-  cursor: pointer;
-  color: #888;
-  transition: color 0.2s ease, transform 0.2s ease;
+.modal-close { font-size: 24px; cursor: pointer; color: var(--text-light); }
+
+.modal-content { padding: 25px; }
+
+.bill-info {
+    background: #f8fafc;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
 }
 
-.modal-close:hover {
-  color: #e74c3c;
-  transform: rotate(90deg);
+.bill-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+.bill-total {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed var(--accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.bill-total h2 { margin: 0; color: var(--primary); font-weight: 800; }
+
+/* --- ФОРМА КАРТЫ --- */
+.credit-card-form {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 10px;
 }
 
-.payment-options {
-  display: flex;
-  gap: 20px;
-  margin: 20px 0;
+.input-label { font-size: 12px; font-weight: 800; margin-bottom: 8px; display: block; color: var(--text-light); }
+.card-type-badge { float: right; color: var(--primary); font-style: italic; }
+
+.input-group { position: relative; margin-bottom: 12px; }
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    background: #334155;
+    border: 1px solid #475569;
+    border-radius: 10px;
+    color: white;
+    font-family: monospace;
+    font-size: 16px;
+    box-sizing: border-box;
 }
 
-.payment-options label {
-  font-size: 15px;
-  cursor: pointer;
-  color: #2c3e50;
+.row-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.action-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: 0.3s;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+.action-btn.primary { background: var(--primary); color: white; }
+.action-btn.secondary { background: var(--bg-main); color: var(--text-dark); }
+
+.hidden { display: none !important; }
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .kanban-board { grid-template-columns: 1fr; }
 }

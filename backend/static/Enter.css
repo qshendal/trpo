@@ -1,64 +1,330 @@
+/* --- ПЕРЕМЕННЫЕ (Modern Nexus Palette 2026) --- */
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-soft: rgba(37, 99, 235, 0.08);
+    --bg-main: #f8fafc;
+    --bg-dark: #0f172a;
+    --white: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    
+    /* Анимации и скругления */
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.04);
+    --shadow-hover: 0 20px 40px rgba(37, 99, 235, 0.15);
+    --bezier: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- СБРОС И БАЗА --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f4f6fa;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
+    font-family: 'Manrope', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
 }
 
+/* --- ПРЕЛОАДЕР --- */
+.loader-wrapper {
+    position: fixed;
+    inset: 0;
+    background: var(--white);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column; /* Выравниваем элементы в колонку */
+    align-items: center;    /* Центрируем по горизонтали */
+    justify-content: center; /* Центрируем по вертикали */
+}
+.loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.loader-wrapper.fade-out {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s var(--bezier);
+}
+.logo-img-loader {
+    width: 120px; /* Немного увеличил для солидности */
+    height: auto;
+    margin-bottom: 30px; /* Отступ до полоски загрузки */
+    animation: pulse 2.5s infinite ease-in-out;
+    display: block;
+}
+.progress-container {
+    width: 220px; /* Чуть шире для лучшего баланса */
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--primary);
+    width: 0;
+    /* Анимация теперь длится 3 секунды */
+    animation: fillProgress 3s forwards cubic-bezier(0.65, 0, 0.35, 1);
+}
+@keyframes fillProgress { 
+    0% { width: 0; }
+    100% { width: 100%; } 
+}
+
+/* Ровная пульсация без смещения центра */
+@keyframes pulse { 
+    0%, 100% { 
+        transform: scale(1); 
+        opacity: 1; 
+        filter: drop-shadow(0 0 0px rgba(37, 99, 235, 0));
+    } 
+    50% { 
+        transform: scale(1.05); 
+        opacity: 0.8;
+        filter: drop-shadow(0 0 15px rgba(37, 99, 235, 0.2));
+    } 
+}
+/* --- НАВИГАЦИЯ --- */
+.navbar {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+}
+
+.logo span { color: var(--primary); }
+.logo-img-nav { height: 36px; }
+
+.nav-links { display: flex; gap: 12px; }
+
+.nav-link-btn {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 12px;
+    transition: background 0.3s;
+}
+
+.nav-link-btn:hover { background: var(--primary-soft); color: var(--primary); }
+
+.nav-btn-primary {
+    background: var(--bg-dark);
+    color: var(--white);
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: var(--bezier);
+}
+
+.nav-btn-primary:hover { background: var(--primary); transform: translateY(-2px); }
+
+/* --- ГЕРОЙ-СЕКЦИЯ --- */
 .auth-wrapper {
-  background-color: #ffffff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
+    padding: 100px 24px;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-.auth-wrapper h2 {
-  margin-bottom: 20px;
-  color: #182e47;
+.badge {
+    background: var(--primary-soft);
+    color: var(--primary);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.auth-wrapper h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    margin: 24px 0;
+    line-height: 1.1;
+    letter-spacing: -2px;
+}
+
+.auth-wrapper p {
+    color: var(--text-muted);
+    font-size: 18px;
+    max-width: 600px;
+    margin: 0 auto 40px;
 }
 
 .auth-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
 }
 
-.auth-buttons button {
-  padding: 12px;
-  font-size: 16px;
-  font-weight: bold;
-  background-color: #182e47;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.action-btn {
+    padding: 16px 32px;
+    border-radius: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.4s var(--bezier);
 }
 
-.auth-buttons button:hover {
-  background-color: #2c4a70;
+.action-btn.primary { background: var(--primary); color: var(--white); }
+.action-btn.primary:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); background: var(--primary-hover); }
+
+.action-btn.secondary { background: var(--white); color: var(--text-main); border: 1px solid var(--border-color); }
+.action-btn.secondary:hover { border-color: var(--text-main); background: var(--bg-main); }
+
+/* --- КАТАЛОГ УСЛУГ --- */
+.catalog-section {
+    padding: 100px 24px;
+    background: var(--white);
 }
 
-.popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #e74c3c;
-  color: white;
-  padding: 20px 30px;
-  border-radius: 8px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.3);
-  font-size: 16px;
-  z-index: 999;
-  text-align: center;
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
 }
-.hidden {
-  display: none;
+
+.section-header h2 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.catalog-grid {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+}
+
+/* КАРТОЧКА (Теперь это ссылка <a>) */
+.catalog-card {
+    position: relative;
+    height: 420px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    text-decoration: none;
+    display: flex;
+    align-items: flex-end;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.6s var(--bezier), box-shadow 0.6s var(--bezier);
+}
+
+/* Ровный градиент поверх фото */
+.catalog-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.3) 50%, transparent 100%);
+    z-index: 1;
+    transition: background 0.4s var(--bezier);
+}
+
+.catalog-card:hover {
+    transform: translateY(-12px);
+    box-shadow: var(--shadow-hover);
+}
+
+/* Эффект смены цвета градиента при наведении */
+.catalog-card:hover::after {
+    background: linear-gradient(to top, rgba(37, 99, 235, 0.8) 0%, rgba(15, 23, 42, 0.4) 100%);
+}
+
+.card-content {
+    position: relative;
+    z-index: 2;
+    padding: 32px;
+    color: var(--white);
+    width: 100%;
+}
+
+.card-tag {
+    display: inline-block;
+    background: var(--primary);
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.card-content h3 { font-size: 26px; margin-bottom: 8px; font-weight: 800; }
+.card-content p { font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; line-height: 1.4; }
+
+.card-link {
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: gap 0.3s;
+}
+
+.catalog-card:hover .card-link { gap: 14px; }
+
+/* --- POPUPS --- */
+#loginErrorPopup {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--bg-dark);
+    color: var(--white);
+    padding: 16px 24px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 2000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    transition: all 0.4s var(--bezier);
+}
+
+#loginErrorPopup.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
+
+/* --- АДАПТИВНОСТЬ --- */
+@media (max-width: 768px) {
+    .auth-buttons { flex-direction: column; }
+    .catalog-grid { grid-template-columns: 1fr; }
+    .auth-wrapper { padding: 60px 24px; }
 }

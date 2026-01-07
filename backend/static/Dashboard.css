@@ -1,3 +1,17 @@
+/* Подключаем современный и читабельный шрифт */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary: #3b82f6;          /* Основной синий */
+  --bg-body: #f1f5f9;         /* Светло-серый фон страницы */
+  --sidebar-bg: #ffffff;      /* Белый сайдбар */
+  --card-bg: #ffffff;         /* Белые карточки */
+  --text-main: #1e293b;       /* Почти черный текст */
+  --text-muted: #64748b;      /* Приглушенный серый текст */
+  --border: #e2e8f0;          /* Тонкие границы */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -5,9 +19,10 @@
 }
 
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f4f6fa;
-  color: #333;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  line-height: 1.5;
 }
 
 a {
@@ -15,100 +30,148 @@ a {
   color: inherit;
 }
 
-/* Контейнер */
+/* --- КОНТЕЙНЕР --- */
 .container {
   display: flex;
   min-height: 100vh;
 }
 
-/* Сайдбар */
+/* --- САЙДБАР (Светлый) --- */
 .sidebar {
-  width: 240px;
-  background-color: #182e47;
-  color: #fff;
-  padding: 20px;
+  width: 260px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
   font-size: 20px;
-  margin-bottom: 5px;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
 }
 
 .subtitle {
-  font-size: 14px;
-  color: #ccc;
-  margin-bottom: 30px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 40px;
 }
 
-.menu ul {
-  list-style: none;
-}
+.menu ul { list-style: none; }
 
 .menu li {
-  padding: 10px 0;
-  font-size: 16px;
+  margin-bottom: 4px;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
-.menu li.active,
+.menu li a {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
 .menu li:hover {
-  background-color: #2c4a70;
-  padding-left: 10px;
-  border-radius: 4px;
-  transform: translateX(5px);
+  background-color: #f8fafc;
 }
 
-.menu a {
-  display: block;
-  color: inherit;
+.menu li:hover a {
+  color: var(--primary);
 }
 
+.menu li.active {
+  background-color: #eff6ff;
+}
+
+.menu li.active a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* --- ОСНОВНАЯ ОБЛАСТЬ --- */
 .dashboard {
   flex: 1;
-  padding: 15px;
+  padding: 32px 40px;
 }
 
 .top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-  margin-bottom: 0;
+  margin-bottom: 32px;
 }
 
 .top-bar h2 {
-  font-size: 20px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
-/* Секция карточек */
+/* --- СЕТКА КАРТОЧЕК --- */
 .task-section {
-  display: flex;
-  gap: 20px;
-  flex-wrap: nowrap;
-  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
-/* Карточка */
 .task-box {
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  padding: 16px 20px;
-  width: 100%;
-  max-width: 500px;
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  transition: box-shadow 0.2s;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .task-box:hover {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
+.task-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.task-count {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Иконки в карточках */
+.task-icon {
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  color: var(--primary);
+}
+
+/* Большие карточки (Списки) */
 .task-box.task-full {
-  flex: 1 1 100%;
-  width: 100%;
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-self: start;
   max-width: none;
 }
 
@@ -116,110 +179,90 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 25px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
 
-.task-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #182e47;
+.task-header .task-title {
+  font-size: 16px;
+  color: var(--text-main);
+  margin-bottom: 0;
 }
 
+/* Кнопка действия */
 .action-btn {
-  background-color: #f7fbff;
-  color: #000000;
-  border: 1px solid #9a9c9e;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: bold;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
-  white-space: nowrap;
-  line-height: 1.2;
-  transition: background-color 0.2s;
+  transition: opacity 0.2s;
 }
 
 .action-btn:hover {
-  background-color: #e0e0e0;
+  opacity: 0.9;
 }
 
-/* Вложенные карточки задач */
+/* --- ВЛОЖЕННЫЕ КАРТОЧКИ --- */
 .task-inner-cards {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 10px;
 }
 
 .task-subcard {
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f7fbff;
-  border: 1px solid #d0d4d8;
-  border-radius: 10px;
-  padding: 12px 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  transition: background-color 0.2s;
-}
-
-.task-subcard:hover {
-  background-color: #edf2f7;
-}
-
-.task-subcard-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
 }
 
 .task-name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  color: #182e47;
+  color: var(--text-main);
 }
 
-.task-type,
+.task-type {
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 500;
+}
+
 .task-deadline {
   font-size: 12px;
-  color: #555;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
+/* ПРИОРИТЕТЫ */
 .task-priority {
-  font-size: 12px;
-  font-weight: bold;
-  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
   border-radius: 6px;
-  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.task-priority.high {
-  background-color: #ffe5e5;
-  color: #d10000;
-}
-.task-priority.medium {
-  background-color: #fff3cd;
-  color: #856404;
-}
-.task-priority.critical {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-.task-priority.low {
-  background-color: #e6f7ff;
-  color: #0077b6;
-}
+.task-priority.high { background-color: #fee2e2; color: #ef4444; }
+.task-priority.medium { background-color: #fef3c7; color: #d97706; }
+.task-priority.low { background-color: #dcfce7; color: #10b981; }
+.task-priority.critical { background-color: #1e293b; color: #ffffff; }
 
-#maintenanceTasks {
-  max-height: 400px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
+/* СКЛАД (Специфический стиль) */
 .task-subcard.low-stock {
-  background-color: #fff8dc; 
-  border: 1px solid #f1c40f; 
-  border-radius: 8px;
+  border-left: 4px solid #f59e0b;
+  background-color: #fffbeb;
 }
+
+/* Кастомизация скроллбара */
+#maintenanceTasks::-webkit-scrollbar { width: 6px; }
+#maintenanceTasks::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
