@@ -1,24 +1,105 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Панель пользователя</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='user.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS — Кабинет</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='user.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="user-panel">
-    <h2>Добро пожаловать!</h2>
-    <p>Выберите действие:</p>
 
-    <div class="action-buttons">
-      <form action="{{ url_for('client.my_requests') }}" method="get">
-        <button type="submit">Мои заявки</button>
-      </form>
-      <form action="{{ url_for('client.create_request_form') }}" method="get">
-        <input type="hidden" name="role" value="user">
-        <button type="submit">Создать заявку</button>
-      </form>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-avatar">🔗</div>
+                NEXUS<span>PANEL</span>
+            </div>
+
+            <div class="user-profile-badge">
+                <div class="u-avatar">👤</div>  
+                <div class="user-info">
+                    <span class="u-name">{{ user_name if user_name else "Вы авторизованы" }}</span>
+                    <span class="u-role">Клиент</span>
+                </div>
+                <a href="javascript:void(0)" class="logout-btn" onclick="toggleModal(true)" title="Выйти из системы">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content dashboard-container">
+        <div class="dashboard-header">
+            <h1>Добро пожаловать в Nexus</h1>
+            <p>Управляйте обслуживанием вашего оборудования в один клик</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dash-card create-card">
+                <div class="card-icon">✨</div>
+                <h3>Новая заявка</h3>
+                <p>Вызвать мастера, электрика или механика для диагностики и ремонта.</p>
+                <a href="{{ url_for('client.create_request_form') }}" class="action-btn primary full-width">Создать запрос</a>
+            </div>
+
+            <div class="dash-card list-card">
+                <div class="card-icon">📂</div>
+                <h3>Мои заявки</h3>
+                <p>Отслеживание текущего статуса работ и история выполненных заказов.</p>
+                <a href="{{ url_for('client.my_requests') }}" class="action-btn secondary full-width">Открыть список</a>
+            </div>
+        </div>
+    </main>
+
+<div id="logoutModal" class="logout-modal hidden">
+    <div class="modal-overlay" onclick="toggleModal(false)"></div>
+    <div class="modal-window">
+        <div class="modal-body">
+            <div class="modal-icon-warning">⚠️</div>
+            <h3>Выйти из аккаунта?</h3>
+            <p>Для продолжения работы потребуется повторная авторизация.</p>
+        </div>
+        <div class="modal-btns">
+            <button class="action-btn secondary-btn" onclick="toggleModal(false)">Отмена</button>
+            <a href="{{ url_for('auth.entry_point') }}" class="action-btn danger-btn">Выйти</a>
+        </div>
     </div>
-  </div>
+</div>
+
+<script>
+    // 1. Глобальная функция (теперь точно заработает из HTML)
+    window.toggleModal = function(show) {
+        const modal = document.getElementById('logoutModal');
+        if (!modal) return;
+
+        if (show) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+        } else {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 2. Анимация появления контента
+        const page = document.querySelector('.dashboard-container');
+        if (page) {
+            setTimeout(() => {
+                page.classList.add('active');
+            }, 100);
+        }
+
+        // 3. Закрытие по нажатию Esc
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') toggleModal(false);
+        });
+    });
+</script>
 </body>
 </html>

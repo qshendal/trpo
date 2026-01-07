@@ -2,80 +2,208 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Создание заявки — ТехОбслуживание</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS — Новая заявка</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='TO.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="form-container">
-    <h2>Создание заявки на ТО</h2>
-    <form class="request-form" method="POST" action="{{ url_for('client.create_request') }}">
-      <fieldset>
-        <legend>Данные о клиенте</legend>
-        <label>Название организации:
-          <input type="text" name="company" required>
-        </label>
-        <label>Контактное лицо (ФИО):
-          <input type="text" name="contact" required>
-        </label>
-        <label>Телефон:
-          <input type="tel" name="phone" required>
-        </label>
-        <label>Email:
-          <input type="email" name="email" required>
-        </label>
-        <label>Адрес:
-          <input type="text" name="address" required>
-        </label>
-      </fieldset>
-      <fieldset>
-        <legend>Данные об оборудовании</legend>
-        <label>Название:
-          <input type="text" name="equipment" required>
-        </label>
-        <label>Дата установки:
-          <input type="date" name="install_date">
-        </label>
-        <label>Место установки:
-          <input type="text" name="location">
-        </label>
-        <label>Статус:
-          <select name="equipment_status">
-            <option value="в эксплуатации">В эксплуатации</option>
-            <option value="неисправно">Неисправно</option>
-            <option value="в ремонте">В ремонте</option>
-            <option value="выведено из эксплуатации">Выведено из эксплуатации</option>
-          </select>
-        </label>
-      </fieldset>
-      <fieldset>
-        <legend>Информация о заявке</legend>
-        <label>Описание проблемы:
-          <textarea name="problem" rows="4" required></textarea>
-        </label>
-      </fieldset>
-      <div class="form-actions">
-        <button type="submit" class="submit-btn"><i class="fas fa-save"></i> Сохранить заявку</button>
-        <button type="button" id="backBtn" class="cancel-btn">
-          <i class="fas fa-arrow-left"></i> Назад
-        </button>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-avatar">📝</div>
+        NEXUS<span>FORM</span>
       </div>
-    </form>
+      <button id="navBackBtn" class="nav-btn secondary">
+        <i class="fas fa-times"></i> Отмена
+      </button>
+    </div>
+  </nav>
+
+  <div class="main-content form-page-wrapper">
+    <div class="form-card">
+      <div class="form-header">
+        <h2>Оформление заявки</h2>
+        <p>Заполните данные для вызова специалиста</p>
+      </div>
+
+      <form class="nexus-form" method="POST" action="{{ url_for('client.create_request') }}">
+        <input type="hidden" id="categoryField" name="category_tag" value="general">       
+         <div class="form-section">
+          <h3><i class="fas fa-user-tie"></i> Данные клиента</h3>
+          
+          <div class="input-grid">
+            <div class="input-group">
+              <label>Название организации</label>
+              <input type="text" name="company" placeholder="ООО Заря" required>
+            </div>
+            
+            <div class="input-group">
+              <label>Контактное лицо</label>
+              <input type="text" name="contact" placeholder="Иванов И.И." required>
+            </div>
+          </div>
+
+          <div class="input-grid">
+            <div class="input-group">
+              <label>Телефон</label>
+              <input type="tel" name="phone" placeholder="+375 () 000-00-00" required>
+            </div>
+            <div class="input-group">
+              <label>Email</label>
+              <input type="email" name="email" placeholder="mail@example.com" required>
+            </div>
+          </div>
+
+          <div class="input-group full">
+            <label>Адрес объекта</label>
+            <input type="text" name="address" placeholder="г. Минск, ул. Ленина, д. 32" required>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3><i class="fas fa-cogs"></i> Оборудование</h3>
+          
+          <div class="input-grid">
+            <div class="input-group">
+              <label>Название оборудования</label>
+              <input type="text" name="equipment" placeholder="Например: Станок ЧПУ Model X" required>
+            </div>
+            <div class="input-group">
+              <label>Дата установки</label>
+              <input type="date" name="install_date">
+            </div>
+          </div>
+
+          <div class="input-grid">
+            <div class="input-group">
+              <label>Место установки (Цех/Отдел)</label>
+              <input type="text" name="location" placeholder="Цех №3">
+            </div>
+            <div class="input-group">
+              <label>Текущий статус</label>
+              <div class="select-wrapper">
+                <select name="equipment_status">
+                  <option value="в эксплуатации">В эксплуатации</option>
+                  <option value="неисправно" selected>Неисправно</option>
+                  <option value="в ремонте">В ремонте</option>
+                  <option value="выведено из эксплуатации">Выведено из эксплуатации</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3><i class="fas fa-exclamation-triangle"></i> Описание проблемы</h3>
+          <div class="input-group full">
+            <textarea name="problem" rows="4" placeholder="Опишите, что случилось (код ошибки, звуки, симптомы)..." required></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="backBtn" class="action-btn secondary">
+            <i class="fas fa-arrow-left"></i> Назад
+          </button>
+          <button type="submit" class="action-btn primary">
+            Сохранить заявку <i class="fas fa-check"></i>
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
-  <script>
-  const role = "{{ session.get('role', 'guest') }}";
-  const entryUrl = "{{ url_for('auth.entry_point') }}";
-  const userUrl = "{{ url_for('client.user_panel') }}";
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // === 1. ИНИЦИАЛИЗАЦИЯ ДАННЫХ ===
+    const form = document.querySelector('.nexus-form');
+    const field = document.getElementById('categoryField');
+    const problemArea = document.querySelector('textarea[name="problem"]');
+    
+    // Пытаемся достать категорию: сначала из URL, потом из сессии (через Jinja)
+    const params = new URLSearchParams(window.location.search);
+    const catFromUrl = params.get('category');
+    const catFromSession = "{{ session.get('selected_category', '') }}";
 
-  document.getElementById('backBtn').addEventListener('click', () => {
-    if (role === "guest") {
-      window.location.href = entryUrl;
-    } else {
-      window.location.href = userUrl;
+    if (field) {
+        field.value = catFromUrl || catFromSession || 'general';
+        console.log("🎯 Категория заявки определена как:", field.value);
     }
-  });
-</script>
+
+    // === 2. МАСКА ТЕЛЕФОНА (+375...) ===
+    const phoneInput = document.querySelector('input[name="phone"]');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, ''); 
+            if (value.startsWith('375')) {
+                let x = value.match(/(\d{3})(\d{0,2})(\d{0,3})(\d{0,2})(\d{0,2})/);
+                e.target.value = !x[2] ? '+' + x[1] : `+${x[1]} (${x[2]}) ${x[3]}` + (x[4] ? `-${x[4]}` : '') + (x[5] ? `-${x[5]}` : '');
+            }
+        });
+    }
+
+    // === 3. ОГРАНИЧЕНИЕ ДАТЫ (НЕ БУДУЩЕЕ) ===
+    const dateInput = document.querySelector('input[name="install_date"]');
+    if (dateInput) {
+        dateInput.setAttribute('max', new Date().toISOString().split('T')[0]);
+    }
+
+    // === 4. НАВИГАЦИЯ (НАЗАД) ===
+    const role = "{{ session.get('role', 'guest') }}";
+    const entryUrl = "{{ url_for('auth.entry_point') }}";
+    const userUrl = "{{ url_for('client.user_panel') }}";
+
+    window.goBack = function() {
+        window.location.href = (role === "guest") ? entryUrl : userUrl;
+    };
+
+    document.getElementById('backBtn')?.addEventListener('click', goBack);
+    document.getElementById('navBackBtn')?.addEventListener('click', goBack);
+
+    // === 5. ОБРАБОТКА ОТПРАВКИ И СКЛЕЙКА ТЕГА ===
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const requiredFields = this.querySelectorAll('[required]');
+
+        // А) Проверка пустых полей
+        requiredFields.forEach(f => {
+            if (!f.value.trim()) {
+                isValid = false;
+                f.style.borderColor = '#ef4444';
+                f.classList.add('error-shake');
+                setTimeout(() => f.classList.remove('error-shake'), 500);
+            } else {
+                f.style.borderColor = '#e2e8f0';
+            }
+        });
+
+        // Б) Валидация Email
+        const email = this.querySelector('input[type="email"]');
+        if (email?.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+            isValid = false;
+            email.style.borderColor = '#ef4444';
+            alert('Введите корректный Email');
+        }
+
+        // В) ГЛАВНЫЙ ШАГ: Склейка тега для планировщика
+        if (isValid && problemArea && field) {
+            const currentTag = field.value.toLowerCase().trim();
+            // Добавляем тег только если его еще нет в тексте
+            if (!problemArea.value.includes(`[${currentTag}]`)) {
+                problemArea.value = `${problemArea.value.trim()} [${currentTag}]`;
+            }
+            
+            // Блокируем кнопку и показываем загрузку
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
+        } else if (!isValid) {
+            e.preventDefault(); // Останавливаем отправку, если есть ошибки
+        }
+    });
+});
 </script>
 </body>
 </html>

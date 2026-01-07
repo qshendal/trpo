@@ -2,84 +2,92 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>ТехОбслуживание — Панель управления</title>
+  <title>NEXUS — Панель управления</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='Dashboard.css') }}">
 </head>
 <body>
   <div class="container">
     <aside class="sidebar">
-      <h1 class="logo">🔧 ТехОбслуживание</h1>
-      <p class="subtitle">Управление техникой</p>
+      <div class="sidebar-brand">
+        <h1 class="logo">🔧 NEXUS</h1>
+        <p class="subtitle">Система мониторинга</p>
+      </div>
       <nav class="menu">
         <ul>
-          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
-          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li class="active"><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-th-large"></i> Панель управления</a></li>
+          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-check"></i> Планирование</a></li>
+          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-database"></i> Инвентарь</a></li>
+          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-shield"></i> Мастера</a></li>
+          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-line"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
 
     <main class="dashboard">
       <header class="top-bar">
-        <h2>Панель управления</h2>
+        <div class="header-title">
+          <h2>Панель управления</h2>
+          <p id="currentDate">Аналитика технического состояния</p>
+        </div>
+        <div class="user-profile">
+        </div>
       </header>
 
       <section class="task-section">
-        <div class="task-box">
+        <div class="task-box stat-blue">
           <div class="task-info">
             <div class="task-title">Активные задачи</div>
             <div class="task-count" id="activeCount">0</div>
           </div>
-          <i class="fas fa-wrench task-icon"></i>
+          <div class="box-icon-wrap"><i class="fas fa-wrench task-icon"></i></div>
         </div>
 
-        <div class="task-box">
+        <div class="task-box stat-orange">
           <div class="task-info">
             <div class="task-title">Малые запасы</div>
             <div class="task-count" id="lowStockCount">0</div>
           </div>
-          <i class="fas fa-box-open task-icon" style="color: #e67e22;"></i>
+          <div class="box-icon-wrap"><i class="fas fa-box-open task-icon"></i></div>
         </div>
 
-        <div class="task-box">
+        <div class="task-box stat-green">
           <div class="task-info">
-            <div class="task-title">Расходы за месяц</div>
+            <div class="task-title">Расходы (мес)</div>
             <div class="task-count" id="monthlyExpenses">0</div>
           </div>
-          <i class="fas fa-money-bill-wave task-icon" style="color: #27ae60;"></i>
+          <div class="box-icon-wrap"><i class="fas fa-money-bill-wave task-icon"></i></div>
         </div>
 
-        <div class="task-box">
+        <div class="task-box stat-blue-light">
           <div class="task-info">
             <div class="task-title">Мастера</div>
             <div class="task-count" id="technicianCount">0</div>
           </div>
-          <i class="fas fa-user-cog task-icon" style="color: #3498db;"></i>
+          <div class="box-icon-wrap"><i class="fas fa-user-cog task-icon"></i></div>
         </div>
       </section>
 
-      <section class="task-section">
+      <section class="task-section main-content-grid">
         <div class="task-box task-full">
           <div class="task-header">
-            <div class="task-title">Текущие задачи обслуживания</div>
+            <div class="task-title"><i class="fas fa-tasks"></i> Текущие задачи обслуживания</div>
           </div>
-          <div class="task-inner-cards" id="maintenanceTasks"></div>
+          <div class="task-inner-cards" id="maintenanceTasks">
+            </div>
         </div>
 
         <div class="task-box task-full">
           <div class="task-header">
-            <div class="task-title">Уведомления о малых запасах</div>
+            <div class="task-title"><i class="fas fa-exclamation-circle"></i> Критические уведомления</div>
             <button class="action-btn" onclick="window.location.href='/client/equipment-registry'">Управление складом</button>
           </div>
-          <div class="task-inner-cards" id="lowStockAlerts"></div>
+          <div class="task-inner-cards" id="lowStockAlerts">
+            </div>
         </div>
       </section>
     </main>
   </div>
-
   <script>
   // Карточка задачи обслуживания
   function addTaskCard({ name, type, deadline, priorityText, priorityClass }) {

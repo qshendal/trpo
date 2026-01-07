@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>ТехОбслуживание — Отчёты</title>
+  <title>NEXUS — Аналитика</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='Reports.css') }}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -10,262 +10,405 @@
 </head>
 <body>
   <div class="container">
-    <!-- Боковое меню -->
     <aside class="sidebar">
-      <h1 class="logo">🔧 ТехОбслуживание</h1>
-      <p class="subtitle">Отчёты</p>
+      <div class="sidebar-brand">
+        <h1 class="logo">🔧 NEXUS</h1>
+        <p class="subtitle">Система мониторинга</p>
+      </div>
       <nav class="menu">
         <ul>
-          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
-          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-th-large"></i> Панель управления</a></li>
+          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-check"></i> Планирование</a></li>
+          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-database"></i> Инвентарь</a></li>
+          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-shield"></i> Мастера</a></li>
+          <li class="active"><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-line"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
 
-    <!-- Основная панель -->
-    <main class="dashboard">
-      <header class="top-bar">
-        <h2>Отчёты</h2>
-      </header>
+  <main class="dashboard">
+    <header class="top-bar">
+        <div class="header-title">
+            <h2>Аналитическая панель</h2>
+            <p>Генерация отчетов и финансовый аудит</p>
+        </div>
+    </header>
 
-      <!-- Переключатель вкладок -->
-      <div class="tabs-wrapper">
-        <button class="tab-button active" data-tab="expenses">
-          <i class="fas fa-money-bill-wave"></i> Затраты
-        </button>
-        <button class="tab-button" data-tab="maintenance">
-          <i class="fas fa-clipboard-check"></i> Обслуживание
-        </button>
-      </div>
+    <div class="tabs-container">
+        <div class="tabs-pill">
+            <button class="tab-button active" data-tab="expenses">
+                <i class="fas fa-file-invoice-dollar"></i> Финансы
+            </button>
+            <button class="tab-button" data-tab="maintenance">
+                <i class="fas fa-clipboard-list"></i> Сервис
+            </button>
+        </div>
+    </div>
 
-      <!-- Вкладка затрат -->
-      <div class="tab-content active" id="expenses">
-        <div class="filters">
-          <label>Начало: <input type="date" id="startDate"></label>
-          <label>Конец: <input type="date" id="endDate"></label>
-          <button onclick="loadExpenses()"><i class="fas fa-filter"></i> Сформировать</button>
+    <div class="tab-content active" id="expenses">
+        <div class="filters-card">
+            <div class="filter-group">
+                <label>С даты</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="filter-group">
+                <label>По дату</label>
+                <input type="date" id="endDate">
+            </div>
+            <button class="filter-btn" onclick="loadExpenses()">
+                <i class="fas fa-bolt"></i> Анализировать
+            </button>
         </div>
 
-        <div id="reportBlock" class="report-panel hidden">
-          <table class="report-table" id="expensesTable">
-            <thead>
-              <tr><th>Дата</th><th>Сумма расходов</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-          <div class="export-buttons">
-            <button onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
-            <button onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-          </div>
+        <div id="expensesResults" class="hidden">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-wallet"></i></div>
+                    <div class="stat-info">
+                        <label>Итого затрат</label>
+                        <h3 id="expTotalDisplay">0.00 Br</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-info">
+                        <label>Среднее в день</label>
+                        <h3 id="expAvgDisplay">0.00 Br</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-panel">
+                <div class="table-container">
+                    <table class="report-table" id="expensesTable">
+                        <thead>
+                            <tr><th>Период</th><th>Сумма (Br)</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="export-buttons">
+                    <button class="export-btn excel" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+                    <button class="export-btn pdf" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+                </div>
+            </div>
         </div>
-      </div>
+    </div>
 
-      <!-- Вкладка обслуживания -->
-      <div class="tab-content" id="maintenance">
-        <div class="filters">
-          <label>Начало: <input type="date" id="maintStart"></label>
-          <label>Конец: <input type="date" id="maintEnd"></label>
-          <button onclick="loadMaintenance()"><i class="fas fa-filter"></i> Сформировать</button>
+    <div class="tab-content" id="maintenance">
+        <div class="filters-card">
+            <div class="filter-group">
+                <label>Начало</label>
+                <input type="date" id="maintStart">
+            </div>
+            <div class="filter-group">
+                <label>Конец</label>
+                <input type="date" id="maintEnd">
+            </div>
+            <button class="filter-btn" onclick="loadMaintenance()">
+                <i class="fas fa-search"></i> Сформировать
+            </button>
         </div>
 
-        <div id="maintenanceBlock" class="report-panel hidden">
-          <table class="report-table" id="maintenanceTable">
-            <thead>
-              <tr>
-                <th>Дата</th><th>Организация</th><th>ФИО</th>
-                <th>Деталь</th><th>Стоимость</th><th>Мастер</th><th>История</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-          <div class="export-buttons">
-            <button onclick="exportMaintenanceExcel()"><i class="fas fa-file-excel"></i> Excel</button>
-            <button onclick="exportMaintenancePDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-          </div>
+        <div id="maintenanceResults" class="hidden">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-tools"></i></div>
+                    <div class="stat-info">
+                        <label>Всего заявок</label>
+                        <h3 id="maintCountDisplay">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-coins"></i></div>
+                    <div class="stat-info">
+                        <label>Общая стоимость</label>
+                        <h3 id="maintTotalDisplay">0.00 Br</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-panel">
+                <div class="table-container">
+                    <table class="report-table" id="maintenanceTable">
+                        <thead>
+                            <tr>
+                                <th>Дата</th><th>Объект</th><th>Контакт</th><th>Детали</th><th>Стоимость</th><th>Мастер</th><th>Лог</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="export-buttons">
+                    <button class="export-btn excel" onclick="exportMaintenanceExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+                    <button class="export-btn pdf" onclick="exportMaintenancePDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+                </div>
+            </div>
         </div>
-      </div>
-    </main>
-  </div>
-</body>
-</html>
-
-
+    </div>
+</main>
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // ===== Переключение вкладок =====
-  document.querySelectorAll('.tab-button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    // ===== Переключение вкладок =====
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      const targetId = btn.dataset.tab;
-      document.getElementById(targetId).classList.add('active');
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            const targetId = btn.dataset.tab;
+            const targetTab = document.getElementById(targetId);
+            if (targetTab) targetTab.classList.add('active');
+        });
     });
-  });
 
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  const localToday = `${yyyy}-${mm}-${dd}`;
-
-  document.getElementById("startDate").setAttribute("max", localToday);
-  document.getElementById("endDate").setAttribute("max", localToday);
-  document.getElementById("maintStart").setAttribute("max", localToday);
-  document.getElementById("maintEnd").setAttribute("max", localToday);
-
+    // Ограничение дат (сегодняшним числом)
+    const localToday = new Date().toISOString().split('T')[0];
+    ["startDate", "endDate", "maintStart", "maintEnd"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute("max", localToday);
+    });
 });
 
+// ====== Вспомогательная функция для уведомлений ======
+const notify = (msg) => alert(msg);
+
 // ====== ЗАТРАТЫ ======
-function loadExpenses() {
-  const start = document.getElementById('startDate').value;
-  const end = document.getElementById('endDate').value;
-  if (!start || !end) { alert("Выберите период!"); return; }
+async function loadExpenses() {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    const btn = event.currentTarget;
 
-  fetch(`/api/expenses-by-day?start=${start}&end=${end}`)
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.querySelector('#expensesTable tbody');
-      tbody.innerHTML = "";
-      let total = 0;
-      data.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.date}</td><td>${row.amount}</td>`;
-        tbody.appendChild(tr);
-        total += parseFloat(row.amount);
-      });
-      const trTotal = document.createElement('tr');
-      trTotal.innerHTML = `<td><b>Итого</b></td><td><b>${total}</b></td>`;
-      tbody.appendChild(trTotal);
-      document.getElementById('reportBlock').style.display = "block";
-    });
+    if (!start || !end) { notify("Выберите период!"); return; }
+
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка...';
+
+    try {
+        const res = await fetch(`/api/expenses-by-day?start=${start}&end=${end}`);
+        if (!res.ok) throw new Error("Ошибка сервера");
+        const data = await res.json();
+
+        const tbody = document.querySelector('#expensesTable tbody');
+        tbody.innerHTML = "";
+        
+        let total = 0;
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center">Нет данных за этот период</td></tr>';
+        } else {
+            data.forEach(row => {
+                const amount = parseFloat(row.amount);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${row.date}</td><td><strong>${amount.toLocaleString()} Br</strong></td>`;
+                tbody.appendChild(tr);
+                total += amount;
+            });
+        }
+
+        // Обновляем KPI карточки
+        document.getElementById('expTotalDisplay').innerText = `${total.toLocaleString()} Br`;
+        const avg = data.length > 0 ? (total / data.length) : 0;
+        document.getElementById('expAvgDisplay').innerText = `${avg.toLocaleString(undefined, {maximumFractionDigits: 2})} Br`;
+
+        // Показываем блок результатов (исправлено с reportBlock на expensesResults)
+        document.getElementById('expensesResults').classList.remove('hidden');
+
+    } catch (err) {
+        console.error(err);
+        notify("Не удалось загрузить данные по затратам.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
 }
-
 function exportToExcel() {
-  let table = document.getElementById("expensesTable");
-  let html = table.outerHTML;
-  let blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
-  let url = URL.createObjectURL(blob);
-  let a = document.createElement('a');
-  a.href = url;
-  a.download = 'expenses_report.xls';
-  a.click();
+    const table = document.getElementById("expensesTable");
+    const html = table.outerHTML;
+    const blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `expenses_report_${new Date().toLocaleDateString()}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 function exportToPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFont("Times", "normal");
-  doc.text("Отчёт по затратам", 10, 10);
-  let rows = [];
-  document.querySelectorAll("#expensesTable tbody tr").forEach(tr => {
-    let cells = tr.querySelectorAll("td");
-    rows.push([cells[0].innerText, cells[1].innerText]);
-  });
-  doc.autoTable({ head: [['Дата', 'Сумма']], body: rows });
-  doc.save("expenses_report.pdf");
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    doc.text("Отчёт по затратам", 14, 15);
+    
+    const rows = [];
+    document.querySelectorAll("#expensesTable tbody tr").forEach(tr => {
+        const cells = tr.querySelectorAll("td");
+        if (cells.length >= 2) {
+            rows.push([cells[0].innerText, cells[1].innerText]);
+        }
+    });
+
+    doc.autoTable({
+        head: [['Дата', 'Сумма']],
+        body: rows,
+        startY: 20,
+        styles: { font: "helvetica", fontSize: 10 },
+        headStyles: { fillColor: [24, 46, 71] }
+    });
+    doc.save("expenses_report.pdf");
 }
 
 // ====== ОБСЛУЖИВАНИЕ ======
-function loadMaintenance() {
-  const start = document.getElementById('maintStart').value;
-  const end = document.getElementById('maintEnd').value;
-  if (!start || !end) { alert("Выберите период!"); return; }
+async function loadMaintenance() {
+    const start = document.getElementById('maintStart').value;
+    const end = document.getElementById('maintEnd').value;
+    const btn = event.currentTarget;
 
-  fetch(`/api/maintenance-report?start=${start}&end=${end}`)
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.querySelector('#maintenanceTable tbody');
-      tbody.innerHTML = "";
-      data.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.dataset.id = row.id;
-        tr.innerHTML = `
-          <td>${row.date}</td>
-          <td>${row.client}</td>
-          <td>${row.contact_person}</td>
-          <td>${row.parts}</td>
-          <td>${row.amount}</td>
-          <td>${row.technician}</td>
-          <td><button class="show-log-btn" onclick="showLog(${row.id}, this)">Показать историю</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-      document.getElementById('maintenanceBlock').style.display = "block";
-    });
+    if (!start || !end) { notify("Выберите период!"); return; }
+
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка...';
+
+    try {
+        const res = await fetch(`/api/maintenance-report?start=${start}&end=${end}`);
+        if (!res.ok) throw new Error("Ошибка сервера");
+        const data = await res.json();
+
+        const tbody = document.querySelector('#maintenanceTable tbody');
+        tbody.innerHTML = "";
+        
+        let totalSum = 0;
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Нет заявок за этот период</td></tr>';
+        } else {
+            data.forEach(row => {
+                const amount = parseFloat(row.amount);
+                totalSum += amount;
+                const tr = document.createElement('tr');
+                tr.dataset.id = row.id;
+                tr.innerHTML = `
+                    <td>${row.date}</td>
+                    <td><strong>${row.client}</strong></td>
+                    <td>${row.contact_person}</td>
+                    <td><small>${row.parts || '—'}</small></td>
+                    <td>${amount.toLocaleString()} Br</td>
+                    <td><span class="badge-master">${row.technician}</span></td>
+                    <td><button class="show-log-btn" onclick="showLog(${row.id}, this)">Лог</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Обновляем KPI
+        document.getElementById('maintCountDisplay').innerText = data.length;
+        document.getElementById('maintTotalDisplay').innerText = `${totalSum.toLocaleString()} Br`;
+
+        // Показываем блок (исправлено с maintenanceBlock на maintenanceResults)
+        document.getElementById('maintenanceResults').classList.remove('hidden');
+
+    } catch (err) {
+        console.error(err);
+        notify("Ошибка при загрузке отчета об обслуживании.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
 }
-
 function exportMaintenanceExcel() {
-  let table = document.getElementById("maintenanceTable");
-  let html = table.outerHTML;
-  let blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
-  let url = URL.createObjectURL(blob);
-  let a = document.createElement('a');
-  a.href = url;
-  a.download = 'maintenance_report.xls';
-  a.click();
+    const table = document.getElementById("maintenanceTable");
+    const html = table.outerHTML;
+    const blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'maintenance_report.xls';
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 function exportMaintenancePDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFont("Times", "normal");
-  doc.text("Отчёт по обслуживанию", 10, 10);
-  let rows = [];
-  document.querySelectorAll("#maintenanceTable tbody tr").forEach(tr => {
-    let cells = tr.querySelectorAll("td");
-    rows.push([
-      cells[0].innerText,
-      cells[1].innerText,
-      cells[2].innerText,
-      cells[3].innerText,
-      cells[4].innerText,
-      cells[5].innerText
-    ]);
-  });
-  doc.autoTable({ head: [['Дата', 'Организация', 'ФИО', 'Деталь', 'Стоимость', 'Мастер']], body: rows });
-  doc.save("maintenance_report.pdf");
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4'); // Альбомная ориентация для большой таблицы
+    
+    doc.text("Отчёт по обслуживанию", 14, 15);
+    
+    const rows = [];
+    document.querySelectorAll("#maintenanceTable tbody tr").forEach(tr => {
+        const cells = tr.querySelectorAll("td");
+        if (cells.length >= 6) {
+            rows.push([
+                cells[0].innerText,
+                cells[1].innerText,
+                cells[2].innerText,
+                cells[3].innerText,
+                cells[4].innerText,
+                cells[5].innerText
+            ]);
+        }
+    });
+
+    doc.autoTable({
+        head: [['Дата', 'Организация', 'ФИО', 'Деталь', 'Стоимость', 'Мастер']],
+        body: rows,
+        startY: 20,
+        theme: 'grid',
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [24, 46, 71] }
+    });
+    doc.save("maintenance_report.pdf");
 }
 
 // ====== История ======
-function showLog(requestId, btn) {
-  const row = document.querySelector(`#maintenanceTable tbody tr[data-id="${requestId}"]`);
-  if (!row) return;
+async function showLog(requestId, btn) {
+    const row = document.querySelector(`#maintenanceTable tbody tr[data-id="${requestId}"]`);
+    if (!row) return;
 
-  const existingBlock = row.nextElementSibling;
-  if (existingBlock && existingBlock.classList.contains("log-block")) {
-    existingBlock.remove();
-    btn.textContent = "Показать историю";
-    return;
-  }
+    const existingBlock = row.nextElementSibling;
+    if (existingBlock && existingBlock.classList.contains("log-row-container")) {
+        existingBlock.remove();
+        btn.textContent = "Показать историю";
+        btn.classList.remove('hide');
+        return;
+    }
 
-  fetch(`/api/work-log/${requestId}`)
-    .then(res => {
-      if (!res.ok) throw new Error("Ошибка загрузки истории");
-      return res.json();
-    })
-    .then(logs => {
-      let block = document.createElement('div');
-      block.className = "log-block";
-      if (!logs || logs.length === 0) {
-        block.innerHTML = "<p>История пуста.</p>";
-      } else {
-        let html = "<h4>История действий</h4><ul>";
-        logs.forEach(l => {
-          html += `<li><b>${l.дата}</b>: ${l.описание}${l.исполнитель ? " — " + l.исполнитель : ""}</li>`;
-        });
-        html += "</ul>";
-        block.innerHTML = html;
-      }
-      row.after(block);
-      btn.textContent = "Скрыть историю";
-    })
-    .catch(err => console.error(err));
+    const originalText = btn.textContent;
+    btn.textContent = "⏳...";
+
+    try {
+        const res = await fetch(`/api/work-log/${requestId}`);
+        if (!res.ok) throw new Error("Ошибка загрузки");
+        const logs = await res.json();
+
+        const containerTr = document.createElement('tr');
+        containerTr.className = "log-row-container";
+        
+        let html = `<td colspan="7"><div class="log-block">`;
+        if (!logs || logs.length === 0) {
+            html += "<p>История действий пуста.</p>";
+        } else {
+            html += "<h4>История действий</h4><ul class='log-list'>";
+            logs.forEach(l => {
+                html += `<li><span class="log-date">${l.дата}</span>: <span class="log-desc">${l.описание}</span> ${l.исполнитель ? `<small>(${l.исполнитель})</small>` : ""}</li>`;
+            });
+            html += "</ul>";
+        }
+        html += `</div></td>`;
+        
+        containerTr.innerHTML = html;
+        row.after(containerTr);
+        
+        btn.textContent = "Скрыть историю";
+        btn.classList.add('hide');
+    } catch (err) {
+        console.error(err);
+        btn.textContent = originalText;
+        notify("Не удалось загрузить историю.");
+    }
 }
-
 </script>

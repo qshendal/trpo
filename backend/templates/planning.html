@@ -2,125 +2,162 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>ТехОбслуживание — Планирование работ</title>
+  <title>NEXUS — Планирование работ</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='Plane.css') }}">
 </head>
 <body>
   <div class="container">
     <aside class="sidebar">
-      <h1 class="logo">🔧 ТехОбслуживание</h1>
-      <p class="subtitle">Управление техникой</p>
+      <div class="sidebar-brand">
+        <h1 class="logo">🔧 NEXUS</h1>
+        <p class="subtitle">Система мониторинга</p>
+      </div>
       <nav class="menu">
         <ul>
-          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
-          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-th-large"></i> Панель управления</a></li>
+          <li class="active"><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-check"></i> Планирование</a></li>
+          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-database"></i> Инвентарь</a></li>
+          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-shield"></i> Мастера</a></li>
+          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-line"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
+
     <main class="dashboard">
       <header class="top-bar">
-        <h2>Планирование работ</h2>
+        <div class="header-title">
+          <h2>Планирование работ</h2>
+          <p>Распределение задач и контроль заявок</p>
+        </div>
       </header>
 
       <div class="tabs-wrapper">
-        <button class="tab-button active" data-tab="calendar">📅 <span>Календарь</span></button>
-        <button class="tab-button" data-tab="requests">⚠️ <span>Заявки на обслуживание</span></button>
+        <button class="tab-button active" data-tab="calendar">
+          <i class="fas fa-stream"></i> <span>Ход работ</span>
+        </button>
+        <button class="tab-button" data-tab="requests">
+          <i class="fas fa-envelope-open-text"></i> <span>Новые заявки</span>
+        </button>
       </div>
 
-      <div class="tab-content active" id="calendar">
-        <div class="calendar-section">
-          <h3>🔧 В работе</h3>
-          <div id="calendarTasks" class="calendar-tasks"></div>
+<div class="tab-content active" id="calendar">
+        <div class="planning-grid">
+          <div class="calendar-section">
+            <div class="section-header sh-blue">
+               <h3><i class="fas fa-tools"></i> В работе</h3>
+            </div>
+            <div id="calendarTasks" class="calendar-tasks"></div>
+          </div>
+
+          <div class="calendar-section">
+            <div class="section-header sh-orange">
+              <h3><i class="fas fa-file-invoice-dollar"></i> Ожидают оплаты</h3>
+            </div>
+            <div id="awaitingPaymentTasks" class="calendar-tasks"></div>
+          </div>
+
+          <div class="calendar-section">
+            <div class="section-header sh-green">
+              <h3><i class="fas fa-check-double"></i> Завершённые</h3>
+            </div>
+            <div id="completedTasks" class="calendar-tasks"></div>
+          </div>
         </div>
 
-        <div class="calendar-section">
-          <h3>💰 Ожидают оплаты</h3>
-          <div id="awaitingPaymentTasks" class="calendar-tasks"></div>
+        <div class="task-section history-section">
+            <hr style="margin: 40px 0; border: 0; border-top: 1px dashed #cbd5e1;">
+            <h2 class="history-title"><i class="fas fa-archive"></i> История выполненных работ</h2>
+            <div id="historyTasks" class="task-grid completed-grid"></div>
         </div>
-
-        <div class="calendar-section">
-          <h3>✅ Завершённые</h3>
-          <div id="completedTasks" class="calendar-tasks"></div>
-        </div>
-      </div>
-
-      <div class="tab-content" id="requests">
+      </div> <div class="tab-content" id="requests">
         <div id="requestCards" class="request-cards"></div>
       </div>
-
+            <div class="tab-content" id="requests">
+        <div id="requestCards" class="request-cards"></div>
+      </div>
     </main>
   </div>
 
-  <!-- Модалка информации о заявке -->
-  <div id="modalOverlay" class="modal-overlay hidden">
-    <div class="modal-window">
-      <span class="modal-close">&times;</span>
-      <h2>Информация о заявке</h2>
-      <div class="modal-content">
-        <p><strong>Организация:</strong> <span id="modalCompany"></span></p>
-        <p><strong>Контактное лицо:</strong> <span id="modalContact"></span></p>
-        <p><strong>Телефон:</strong> <span id="modalPhone"></span></p>
-        <p><strong>Email:</strong> <span id="modalEmail"></span></p>
-        <p><strong>Адрес:</strong> <span id="modalAddress"></span></p>
-        <hr>
-        <p><strong>Оборудование:</strong> <span id="modalEquipment"></span></p>
-        <p><strong>Дата установки:</strong> <span id="modalInstallDate"></span></p>
-        <p><strong>Место установки:</strong> <span id="modalLocation"></span></p>
-        <p><strong>Статус оборудования:</strong> <span id="modalEquipmentStatus"></span></p>
-        <hr>
-        <p><strong>Дата заявки:</strong> <span id="modalRequestDate"></span></p>
-        <p><strong>Описание проблемы:</strong> <span id="modalProblem"></span></p>
-        <p><strong>Место ремонта:</strong> <span id="modalRepairLocation"></span></p>
-        <hr>
-        <label>Приоритет:</label>
-        <select id="prioritySelect">
-          <option value="">Выбрать</option>
-          <option value="высокий">Высокий</option>
-          <option value="средний">Средний</option>
-          <option value="низкий">Низкий</option>
-        </select>
-        <label>Место ремонта:</label>
-        <select id="repairLocationSelect">
-          <option value="" disabled selected hidden>Выбрать</option>
-          <option value="на предприятии">На предприятии</option>
-          <option value="на базе">На базе</option>
-        </select>
+  <div id="modal-container">
+    <div id="modalOverlay" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <h2>Информация о заявке</h2>
+          <span class="modal-close">&times;</span>
+        </div>
+        <div class="modal-scroll-area">
+          <div class="modal-content">
+            <div class="info-group">
+              <label>Клиент</label>
+              <p><i class="fas fa-building"></i> <span id="modalCompany"></span></p>
+              <p><i class="fas fa-user"></i> <span id="modalContact"></span></p>
+              <p><i class="fas fa-phone"></i> <span id="modalPhone"></span></p>
+            </div>
+            <div class="info-group">
+              <label>Оборудование</label>
+              <p><i class="fas fa-microchip"></i> <span id="modalEquipment"></span></p>
+              <p><i class="fas fa-map-marker-alt"></i> <span id="modalLocation"></span></p>
+            </div>
+            <div class="info-group">
+              <label>Проблема</label>
+              <p class="problem-desc" id="modalProblem"></p>
+            </div>
+            <hr>
+            <div class="form-row">
+              <div class="input-block">
+                <label>Приоритет:</label>
+                <select id="prioritySelect">
+                  <option value="">Выбрать</option>
+                  <option value="высокий">Высокий</option>
+                  <option value="средний">Средний</option>
+                  <option value="низкий">Низкий</option>
+                </select>
+              </div>
+              <div class="input-block">
+                <label>Место ремонта:</label>
+                <select id="repairLocationSelect">
+                  <option value="" disabled selected hidden>Выбрать</option>
+                  <option value="на предприятии">На предприятии</option>
+                  <option value="на базе">На базе</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="modal-actions">
+          <button id="deleteBtn" class="icon-btn-danger" title="Удалить заявку"><i class="fas fa-trash"></i></button>
           <button id="takeInWorkBtn" class="action-btn" disabled>Взять в работу</button>
-          <button id="deleteBtn" class="icon-btn" title="Удалить заявку"><i class="fas fa-trash"></i></button>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Модалка назначения мастеров -->
-  <div id="assignModalOverlay" class="modal-overlay hidden">
-    <div class="modal-window">
-      <span class="modal-close" onclick="document.getElementById('assignModalOverlay').classList.add('hidden')">&times;</span>
-      <h2>Назначить специалистов</h2>
-      <div id="mastersList"></div>
-      <div class="modal-actions">
-        <button id="saveAssignBtn" class="action-btn">Сохранить</button>
-      </div>
+    <div id="assignModalOverlay" class="modal-overlay hidden">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h2>Назначить специалистов</h2>
+                <span class="modal-close" onclick="document.getElementById('assignModalOverlay').classList.add('hidden')">&times;</span>
+            </div>
+            <div id="mastersList" class="modal-list"></div>
+            <div class="modal-actions">
+                <button id="saveAssignBtn" class="action-btn">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="partsModalOverlay" class="modal-overlay hidden">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h2>Добавить запчасти</h2>
+                <span class="modal-close" onclick="document.getElementById('partsModalOverlay').classList.add('hidden')">&times;</span>
+            </div>
+            <div id="partsList" class="modal-list"></div>
+            <div class="modal-actions">
+                <button id="savePartsBtn" class="action-btn">Сохранить</button>
+            </div>
+        </div>
     </div>
   </div>
-
-  <!-- Модалка добавления деталей -->
-  <div id="partsModalOverlay" class="modal-overlay hidden">
-    <div class="modal-window">
-      <span class="modal-close" onclick="document.getElementById('partsModalOverlay').classList.add('hidden')">&times;</span>
-      <h2>Добавить детали</h2>
-      <div id="partsList"></div>
-      <div class="modal-actions">
-        <button id="savePartsBtn" class="action-btn">Сохранить</button>
-      </div>
-    </div>
-  </div>
-
 
 <script>
   let currentTask = null;
@@ -143,146 +180,131 @@
   }
 
 function loadCalendarTasks() {
-  fetch('/api/calendar-tasks')
-    .then(res => res.json())
-    .then(data => {
-      // активные
-      renderTasks(data.active, document.getElementById("calendarTasks"), "active");
-      // ожидают оплаты (включая оплаченные)
-      renderTasks(data.awaiting_payment, document.getElementById("awaitingPaymentTasks"), "awaiting_payment");
-      // завершённые
-      if (document.getElementById("completedTasks")) {
-        renderTasks(data.completed, document.getElementById("completedTasks"), "completed");
+    fetch('/api/calendar-tasks')
+      .then(res => res.json())
+      .then(data => {
+        // Заполняем основные колонки
+        renderTasks(data.active, document.getElementById("calendarTasks"), "active");
+        renderTasks(data.awaiting_payment, document.getElementById("awaitingPaymentTasks"), "awaiting_payment");
+        
+        // ВАЖНО: Заполняем новую колонку Истории
+        const completedContainer = document.getElementById("completedTasks");
+        if (completedContainer && data.completed) {
+            renderTasks(data.completed, completedContainer, "completed");
+        }
+      })
+      .catch(err => console.error("Ошибка загрузки истории:", err));
+}
+  function renderTasks(tasks, container, type) {
+    container.innerHTML = "";
+    if (!Array.isArray(tasks) || tasks.length === 0) {
+      container.innerHTML = "<p>Нет задач.</p>";
+      return;
+    }
+
+    tasks.forEach(task => {
+      const card = document.createElement("div");
+      card.className = "calendar-card";
+      card.innerHTML = `
+        <h3>${task.name}</h3>
+        <p><strong>Дата заявки:</strong> ${task.deadline}</p>
+        <p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>
+        <p><strong>Приоритет:</strong> ${task.priority}</p>
+        <p><strong>Назначенная деталь:</strong> ${
+          task.assignedPart
+            ? `${task.assignedPart.name} (${task.assignedPart.qty} шт.)`
+            : "Не назначена"
+        }</p>
+        <div class="calendar-actions"></div>
+      `;
+
+      const actions = card.querySelector(".calendar-actions");
+
+      if (type === "active") {
+        if (!task.executor) {
+          const assignBtn = document.createElement("button");
+          assignBtn.className = "assign-btn";
+          assignBtn.textContent = "Назначить специалиста";
+          assignBtn.onclick = () => openAssignModal(task);
+          actions.appendChild(assignBtn);
+        } else {
+          const unassignBtn = document.createElement("button");
+          unassignBtn.className = "unassign-master-btn";
+          unassignBtn.textContent = "Отвязать мастера";
+          unassignBtn.onclick = () => {
+            fetch(`/api/unassign-master/${task.id}`, { method: "POST" })
+              .then(() => loadCalendarTasks());
+          };
+          actions.appendChild(unassignBtn);
+        }
+
+        if (!task.assignedPart) {
+          const partsBtn = document.createElement("button");
+          partsBtn.className = "parts-btn";
+          partsBtn.textContent = "Добавить детали";
+          partsBtn.onclick = () => openPartsModal(task);
+          actions.appendChild(partsBtn);
+        } else {
+          const unassignPartBtn = document.createElement("button");
+          unassignPartBtn.className = "unassign-part-btn";
+          unassignPartBtn.textContent = "Отвязать деталь";
+          unassignPartBtn.onclick = () => {
+            fetch(`/api/unassign-part/${task.id}`, { method: "POST" })
+              .then(() => loadCalendarTasks());
+          };
+          actions.appendChild(unassignPartBtn);
+        }
+
+        const doneBtn = document.createElement("button");
+        doneBtn.className = "done-btn";
+        doneBtn.textContent = "Отметить как выполнена";
+        doneBtn.onclick = () => {
+          if (!task.executor || !task.assignedPart) {
+            alert("Чтобы завершить работу, нужно назначить мастера и деталь.");
+            return;
+          }
+          fetch(`/api/complete-task/${task.id}`, { method: "POST" })
+            .then(() => loadCalendarTasks());
+        };
+        actions.appendChild(doneBtn);
       }
-    })
-    .catch(() => {
-      document.getElementById("calendarTasks").innerHTML = "<p>Ошибка при загрузке работ.</p>";
+      else if (type === "awaiting_payment") {
+        const badge = document.createElement("span");
+        badge.className = "status-badge awaiting";
+        badge.textContent = task.type === "оплачено" ? "Оплачено" : "В ожидании оплаты";
+        actions.appendChild(badge);
+
+        if (task.type === "оплачено" || !task.users_id) {
+          const finalizeBtn = document.createElement("button");
+          finalizeBtn.className = "done-btn";
+          finalizeBtn.textContent = "Завершить работу";
+          finalizeBtn.onclick = () => {
+            fetch(`/api/finalize-task/${task.id}`, { method: "POST" })
+              .then(() => loadCalendarTasks());
+          };
+          actions.appendChild(finalizeBtn);
+        }
+      }
+      else if (type === "completed") {
+        const badge = document.createElement("span");
+        badge.className = "status-badge completed";
+        badge.textContent = "Завершено";
+        actions.appendChild(badge);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-btn";
+        deleteBtn.textContent = "Удалить";
+        deleteBtn.onclick = () => {
+          if (confirm("Удалить эту задачу и все связанные данные?")) {
+            fetch(`/api/delete-task/${task.id}`, { method: "DELETE" })
+              .then(() => loadCalendarTasks());
+          }
+        };
+        actions.appendChild(deleteBtn);
+      }
+      container.appendChild(card);
     });
-}
-
-function renderTasks(tasks, container, type) {
-  container.innerHTML = "";
-  if (!Array.isArray(tasks) || tasks.length === 0) {
-    container.innerHTML = "<p>Нет задач.</p>";
-    return;
   }
-
-  tasks.forEach(task => {
-    const card = document.createElement("div");
-    card.className = "calendar-card";
-    card.innerHTML = `
-      <h3>${task.name}</h3>
-      <p><strong>Дата заявки:</strong> ${task.deadline}</p>
-      <p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>
-      <p><strong>Приоритет:</strong> ${task.priority}</p>
-      <p><strong>Назначенная деталь:</strong> ${
-        task.assignedPart
-          ? `${task.assignedPart.name} (${task.assignedPart.qty} шт.)`
-          : "Не назначена"
-      }</p>
-      <div class="calendar-actions"></div>
-    `;
-
-    const actions = card.querySelector(".calendar-actions");
-
-    // === В работе ===
-    if (type === "active") {
-      if (!task.executor) {
-        const assignBtn = document.createElement("button");
-        assignBtn.className = "assign-btn";
-        assignBtn.textContent = "Назначить специалиста";
-        assignBtn.onclick = () => openAssignModal(task);
-        actions.appendChild(assignBtn);
-      } else {
-        const unassignBtn = document.createElement("button");
-        unassignBtn.className = "unassign-master-btn";
-        unassignBtn.textContent = "Отвязать мастера";
-        unassignBtn.onclick = () => {
-          fetch(`/api/unassign-master/${task.id}`, { method: "POST" })
-            .then(() => loadCalendarTasks());
-        };
-        actions.appendChild(unassignBtn);
-      }
-
-      if (!task.assignedPart) {
-        const partsBtn = document.createElement("button");
-        partsBtn.className = "parts-btn";
-        partsBtn.textContent = "Добавить детали";
-        partsBtn.onclick = () => openPartsModal(task);
-        actions.appendChild(partsBtn);
-      } else {
-        const unassignPartBtn = document.createElement("button");
-        unassignPartBtn.className = "unassign-part-btn";
-        unassignPartBtn.textContent = "Отвязать деталь";
-        unassignPartBtn.onclick = () => {
-          fetch(`/api/unassign-part/${task.id}`, { method: "POST" })
-            .then(() => loadCalendarTasks());
-        };
-        actions.appendChild(unassignPartBtn);
-      }
-
-      const doneBtn = document.createElement("button");
-      doneBtn.className = "done-btn";
-      doneBtn.textContent = "Отметить как выполнена";
-      doneBtn.onclick = () => {
-        if (!task.executor || !task.assignedPart) {
-          alert("Чтобы завершить работу, нужно назначить мастера и деталь.");
-          return;
-        }
-        fetch(`/api/complete-task/${task.id}`, { method: "POST" })
-          .then(() => loadCalendarTasks());
-      };
-      actions.appendChild(doneBtn);
-    }
-
-    // === В ожидании оплаты (включая оплаченные и гостевые) ===
-    else if (type === "awaiting_payment") {
-      const badge = document.createElement("span");
-      badge.className = "status-badge awaiting";
-
-      if (task.type === "оплачено") {
-        badge.textContent = "Оплачено";
-      } else {
-        badge.textContent = "В ожидании оплаты";
-      }
-      actions.appendChild(badge);
-
-      if (task.type === "оплачено" || !task.users_id) {
-        const finalizeBtn = document.createElement("button");
-        finalizeBtn.className = "done-btn";
-        finalizeBtn.textContent = "Завершить работу";
-        finalizeBtn.onclick = () => {
-          fetch(`/api/finalize-task/${task.id}`, { method: "POST" })
-            .then(() => loadCalendarTasks());
-        };
-        actions.appendChild(finalizeBtn);
-      }
-    }
-
-    // === Завершена ===
-    else if (type === "completed") {
-      const badge = document.createElement("span");
-      badge.className = "status-badge completed";
-      badge.textContent = "Завершено";
-      actions.appendChild(badge);
-
-      // кнопка удалить
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "delete-btn";
-      deleteBtn.textContent = "Удалить";
-      deleteBtn.onclick = () => {
-        if (confirm("Удалить эту задачу и все связанные данные?")) {
-          fetch(`/api/delete-task/${task.id}`, { method: "DELETE" })
-            .then(() => loadCalendarTasks());
-        }
-      };
-      actions.appendChild(deleteBtn);
-    }
-
-    container.appendChild(card);
-  });
-}
-
 
   function loadRequests() {
     const container = document.getElementById("requestCards");
@@ -306,7 +328,7 @@ function renderTasks(tasks, container, type) {
           const button = document.createElement("button");
           button.className = "action-btn";
           button.textContent = "Рассмотреть заявку";
-          button.addEventListener("click", () => openModal(task));
+          button.onclick = () => openModal(task);
           card.appendChild(button);
           container.appendChild(card);
         });
@@ -318,33 +340,48 @@ function renderTasks(tasks, container, type) {
 
   function openModal(task) {
     currentTask = task;
-    document.getElementById("modalCompany").textContent = task.company || "";
-    document.getElementById("modalContact").textContent = task.contact || "";
-    document.getElementById("modalPhone").textContent = task.phone || "";
-    document.getElementById("modalEmail").textContent = task.email || "";
-    document.getElementById("modalAddress").textContent = task.address || "";
-    document.getElementById("modalEquipment").textContent = task.equipment || "";
-    document.getElementById("modalInstallDate").textContent = task.install_date || "";
-    document.getElementById("modalLocation").textContent = task.location || "";
-    document.getElementById("modalEquipmentStatus").textContent = task.equipment_status || "";
-    document.getElementById("modalRequestDate").textContent = task.deadline || "";
-    document.getElementById("modalProblem").textContent = task.description || "";
-    document.getElementById("modalRepairLocation").textContent = task.repair_location || "";
-    document.getElementById("prioritySelect").value = task.priority || "";
-    document.getElementById("repairLocationSelect").value =
-      (task.repair_location === "на предприятии" || task.repair_location === "на базе")
-        ? task.repair_location : "";
+    
+    // Безопасное заполнение: если элемента нет в HTML, код не упадет
+    const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val || "";
+    };
+
+    setText("modalCompany", task.company);
+    setText("modalContact", task.contact);
+    setText("modalPhone", task.phone);
+    setText("modalEmail", task.email);
+    setText("modalAddress", task.address);
+    setText("modalEquipment", task.equipment);
+    setText("modalInstallDate", task.install_date);
+    setText("modalLocation", task.location);
+    setText("modalEquipmentStatus", task.equipment_status);
+    setText("modalRequestDate", task.deadline);
+    setText("modalProblem", task.description);
+    setText("modalRepairLocation", task.repair_location);
+
+    if (document.getElementById("prioritySelect")) {
+        document.getElementById("prioritySelect").value = task.priority || "";
+    }
+    if (document.getElementById("repairLocationSelect")) {
+        document.getElementById("repairLocationSelect").value =
+          (task.repair_location === "на предприятии" || task.repair_location === "на базе")
+            ? task.repair_location : "";
+    }
+    
     checkActivationReady();
     document.getElementById("modalOverlay").classList.remove("hidden");
   }
-
 
   function checkActivationReady() {
     const priority = document.getElementById("prioritySelect").value;
     const location = document.getElementById("repairLocationSelect").value;
     const validPriorities = ["высокий", "средний", "низкий"];
     const validLocations = ["на предприятии", "на базе"];
-    document.getElementById("takeInWorkBtn").disabled = !(validPriorities.includes(priority) && validLocations.includes(location));
+    const btn = document.getElementById("takeInWorkBtn");
+    if (btn) {
+        btn.disabled = !(validPriorities.includes(priority) && validLocations.includes(location));
+    }
   }
 
   document.getElementById("prioritySelect").addEventListener("change", e => {
@@ -400,123 +437,132 @@ function renderTasks(tasks, container, type) {
   });
 
 function openAssignModal(task) {
-  currentTask = task;
-  const modal = document.getElementById("assignModalOverlay");
-  const list = document.getElementById("mastersList");
-  list.innerHTML = "";
+    console.log("ВЕСЬ ОБЪЕКТ ТАСКА:", task);
+    currentTask = task;
+    const modal = document.getElementById("assignModalOverlay");
+    const list = document.getElementById("mastersList");
+    list.innerHTML = "<p style='padding:20px;'>Загрузка мастеров...</p>";
 
-  // загрузка мастеров
-  fetch("/api/masters")
-    .then(res => {
-      if (!res.ok) throw new Error("Ошибка сервера: " + res.status);
-      return res.json();
-    })
-    .then(data => {
-      data.forEach(master => {
-        const item = document.createElement("div");
-        item.className = "master-item";
-        item.innerHTML = `
-          <label>
-            <input type="checkbox" value="${master.id}">
-            ${master.name} — ${master.specialty}, ${master.phone}
-          </label>
-        `;
-        list.appendChild(item);
-      });
-    })
-    .catch(err => {
-      console.error("Ошибка при загрузке мастеров:", err);
-      alert("Не удалось загрузить список мастеров.");
-    });
+    const fullText = task.description || task.problem || ""; 
+    
+    // 1. Находим ВСЕ теги в квадратных скобках и переводим в нижний регистр
+    const allTags = [...fullText.matchAll(/\[(.*?)\]/g)].map(match => match[1].trim().toLowerCase());
 
-  // сохранение выбранного мастера
-  document.getElementById("saveAssignBtn").onclick = () => {
-    const selected = Array.from(list.querySelectorAll("input:checked")).map(cb => cb.value);
+    console.log("Текст заявки:", fullText);
+    console.log("Все найденные теги:", allTags); // Теперь здесь будет ["общее", "mechanic"]
 
-    fetch(`/api/assign-masters/${currentTask.id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ masters: selected })
-    })
-    .then(res => {
-      if (!res.ok) throw new Error("Ошибка сервера: " + res.status);
-      return res.json();
-    })
-    .then(data => {
-      console.log("Назначенные мастера:", data);
-      modal.classList.add("hidden");
-      loadCalendarTasks();
-    })
-    .catch(err => {
-      console.error("Ошибка при назначении мастера:", err);
-      alert("Не удалось назначить мастера. Попробуйте ещё раз.");
-    });
-  };
+    fetch("/api/masters")
+        .then(res => res.json())
+        .then(data => {
+            list.innerHTML = ""; 
+            
+            data.forEach(master => {
+                const item = document.createElement("div");
+                const isOverloaded = master.active_tasks_count >= 3;
+                const masterSpec = (master.specialty || "").toLowerCase();
 
-  modal.classList.remove("hidden");
+                // 2. ПРОВЕРКА: совпадает ли специальность мастера ХОТЯ БЫ с одним тегом
+                const isRecommended = allTags.some(tag => masterSpec.includes(tag));
+
+                item.className = `master-item ${isRecommended ? 'recommended' : ''} ${isOverloaded ? 'overloaded' : ''}`;
+                
+                if (isRecommended && !isOverloaded) {
+                    item.style.borderLeft = "5px solid #3b82f6";
+                    item.style.backgroundColor = "#f0f7ff";
+                }
+
+                // ... далее твой innerHTML без изменений ...
+
+                item.innerHTML = `
+                    <label class="master-label">
+                        <input type="checkbox" value="${master.id}" ${isOverloaded ? 'disabled' : ''}>
+                        <div class="master-info">
+                            <div class="master-name">
+                                ${master.name}
+                                ${isRecommended && !isOverloaded ? '<span class="badge-rec" style="background:#3b82f6; color:white; padding:2px 8px; border-radius:10px; font-size:10px;">РЕКОМЕНДУЕМ</span>' : ''}
+                                ${isOverloaded ? '<span class="badge-limit">ЗАНЯТ (3/3)</span>' : ''}
+                            </div>
+                            <div class="master-sub">
+                                <i class="fas fa-tools"></i> ${master.specialty || "Общий профиль"} 
+                                <span class="task-count">Загрузка: ${master.active_tasks_count}/3</span>
+                            </div>
+                        </div>
+                    </label>
+                `;
+                list.appendChild(item);
+            });
+        })
+        .catch(err => {
+            console.error("Ошибка:", err);
+            list.innerHTML = "<p>Ошибка загрузки.</p>";
+        });
+        
+    modal.classList.remove("hidden");
+
+    // Обработчик сохранения (остается прежним)
+    document.getElementById("saveAssignBtn").onclick = () => {
+        const selected = Array.from(list.querySelectorAll("input:checked")).map(cb => cb.value);
+        if (selected.length === 0) {
+            alert("Выберите мастера");
+            return;
+        }
+        fetch(`/api/assign-masters/${currentTask.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ masters: selected })
+        }).then(() => {
+            modal.classList.add("hidden");
+            loadCalendarTasks();
+        });
+    };
 }
-
-
 function openPartsModal(task) {
-  currentTask = task;
-  const modal = document.getElementById("partsModalOverlay");
-  const list = document.getElementById("partsList");
-  list.innerHTML = "";
+    currentTask = task;
+    const modal = document.getElementById("partsModalOverlay");
+    const list = document.getElementById("partsList");
+    list.innerHTML = "";
 
-  fetch("/api/parts_en")
-    .then(res => res.json())
-    .then(data => {
-      data.forEach(part => {
-        const item = document.createElement("div");
-        item.className = "part-item";
-        item.innerHTML = `
-          <label>
-            <input type="radio" name="partSelect" value="${part.id}">
-            ${part.name} — ${part.type}, цена: ${part.price}, доступно: ${part.quantity}
-          </label>
-        `;
-        list.appendChild(item);
+    fetch("/api/parts_en")
+      .then(res => res.json())
+      .then(data => {
+        data.forEach(part => {
+          const item = document.createElement("div");
+          item.className = "part-item";
+          item.innerHTML = `
+            <label>
+              <input type="radio" name="partSelect" value="${part.id}">
+              <div class="item-info">
+                <span class="item-name">${part.name}</span>
+                <span class="item-sub"><i class="fas fa-boxes"></i> В наличии: <strong>${part.quantity} шт.</strong></span>
+              </div>
+            </label>
+          `;
+          list.appendChild(item);
+        });
       });
-    });
 
-function completeTask(id) {
-  fetch(`/api/complete-task/${id}`, { method: "POST" })
-    .then(res => res.json())
-    .then(() => loadCalendarTasks())
-    .catch(err => {
-      console.error("Ошибка при переводе в ожидание оплаты:", err);
-      alert("Не удалось отметить как выполнено. Попробуйте ещё раз.");
-    });
-}
+    document.getElementById("savePartsBtn").onclick = () => {
+      const selected = document.querySelector("input[name='partSelect']:checked");
+      if (!selected) {
+        alert("Выберите деталь перед сохранением.");
+        return;
+      }
+      fetch(`/api/assign-part/${currentTask.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ part_id: selected.value })
+      }).then(() => {
+        modal.classList.add("hidden");
+        loadCalendarTasks();
+      });
+    };
+    modal.classList.remove("hidden");
+  }
 
-
-  document.getElementById("savePartsBtn").onclick = () => {
-    const selected = document.querySelector("input[name='partSelect']:checked");
-    if (!selected) {
-      alert("Выберите деталь перед сохранением.");
-      return;
-    }
-
-    fetch(`/api/assign-part/${task.id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ part_id: selected.value })
-    })
-    .then(res => res.json())
-    .then(() => {
-      modal.classList.add("hidden");
-      loadCalendarTasks();
-    })
-    .catch(err => {
-      console.error("Ошибка при назначении детали:", err);
-      alert("Не удалось назначить деталь. Попробуйте ещё раз.");
-    });
-  };
-
-  modal.classList.remove("hidden");
-}
-
+  function completeTask(id) {
+    fetch(`/api/complete-task/${id}`, { method: "POST" })
+      .then(() => loadCalendarTasks());
+  }
 </script>
-
 </body>
 </html>

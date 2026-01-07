@@ -2,30 +2,37 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>ТехОбслуживание — Мастера</title>
+  <title>NEXUS — Мастера</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='Masters.css') }}">
 </head>
 <body>
   <div class="container">
     <aside class="sidebar">
-      <h1 class="logo">🔧 ТехОбслуживание</h1>
-      <p class="subtitle">Мастера</p>
+      <div class="sidebar-brand">
+        <h1 class="logo">🔧 NEXUS</h1>
+        <p class="subtitle">Система мониторинга</p>
+      </div>
       <nav class="menu">
         <ul>
-          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
-          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-th-large"></i> Панель управления</a></li>
+          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-check"></i> Планирование</a></li>
+          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-database"></i> Инвентарь</a></li>
+          <li class="active"><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-shield"></i> Мастера</a></li>
+          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-line"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
 
     <main class="dashboard">
       <header class="top-bar">
-        <h2>Добавление мастера</h2>
-        <button id="openMasterModal" class="assign-btn"><i class="fas fa-user-plus"></i> Добавить мастера</button>
+        <div class="header-title">
+          <h2>Управление персоналом</h2>
+          <p>Реестр квалифицированных мастеров</p>
+        </div>
+        <button id="openMasterModal" class="assign-btn">
+          <i class="fas fa-user-plus"></i> Добавить мастера
+        </button>
       </header>
 
       <div id="mastersContainer" class="masters-list"></div>
@@ -34,130 +41,213 @@
 
   <div id="masterModalOverlay" class="modal-overlay hidden">
     <div class="modal-window">
-      <span class="modal-close" id="closeMasterModal">&times;</span>
-      <h2 id="modalTitle">Добавить мастера</h2>
+      <div class="modal-header">
+        <h2 id="modalTitle">Добавить мастера</h2>
+        <span class="modal-close" id="closeMasterModal">&times;</span>
+      </div>
+      
       <div class="modal-content">
-        <label for="masterName">ФИО мастера:</label>
-        <input type="text" id="masterName" required>
-
-        <label for="masterSpecialty">Специализация:</label>
-        <input type="text" id="masterSpecialty" placeholder="Например: электрик" required>
-
-        <label for="assignDate">Телефон:</label>
-        <input type="test" id="assignNumber" required>
-
-        <label for="masterComment">Примечание:</label>
-        <textarea id="masterComment" rows="3" placeholder="Дополнительная информация"></textarea>
-
-        <div class="modal-actions">
-          <button id="saveMasterBtn" class="action-btn">Сохранить</button>
+        <div class="info-group">
+          <label for="masterName">ФИО мастера</label>
+          <input type="text" id="masterName" placeholder="Введите полное имя..." required>
         </div>
+
+<div class="info-group">
+  <label for="masterSpecialty">Специализация</label>
+  <div class="select-wrapper">
+   <select id="masterSpecialty" required>
+      <option value="" disabled selected hidden>Выберите направление...</option>
+      <option value="energy">Энергетика (Energy)</option>
+      <option value="mechanic">Механика (Mechanic)</option>
+      <option value="robotics">Робототехника (Robotics)</option>
+      <option value="digital">Digital-системы (Digital)</option>
+      <option value="fluid">Гидравлика и пневматика (Fluid)</option>
+      <option value="it">IT-инфраструктура (IT)</option>
+</select>
+    <i class="fas fa-chevron-down select-icon"></i>
+  </div>
+</div>
+        <div class="info-group">
+          <label for="assignNumber">Телефон</label>
+          <input type="text" id="assignNumber" placeholder="+375 (__) ___-__-__" required>
+        </div>
+
+        <div class="info-group">
+          <label for="masterComment">Примечание</label>
+          <textarea id="masterComment" rows="3" placeholder="Дополнительная информация..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="saveMasterBtn" class="action-btn">Сохранить данные</button>
       </div>
     </div>
   </div>
 
- <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    let editingMasterId = null
-    const modal = document.getElementById("masterModalOverlay")
-    const openBtn = document.getElementById("openMasterModal")
-    const closeBtn = document.getElementById("closeMasterModal")
-    const saveBtn = document.getElementById("saveMasterBtn")
-    const container = document.getElementById("mastersContainer")
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    let editingMasterId = null;
+    const modal = document.getElementById("masterModalOverlay");
+    const openBtn = document.getElementById("openMasterModal");
+    const closeBtn = document.getElementById("closeMasterModal");
+    const saveBtn = document.getElementById("saveMasterBtn");
+    const container = document.getElementById("mastersContainer");
 
+    // Открытие модалки для добавления
     openBtn.addEventListener("click", () => {
-      editingMasterId = null
-      clearModal()
-      document.getElementById("modalTitle").textContent = "Добавить мастера"
-      modal.classList.remove("hidden")
-    })
+        editingMasterId = null;
+        clearModal();
+        document.getElementById("modalTitle").textContent = "Добавить мастера";
+        modal.classList.remove("hidden");
+    });
 
+    // Закрытие модалки 
     closeBtn.addEventListener("click", () => {
-      modal.classList.add("hidden")
-    })
-
-    window.addEventListener("click", (event) => {
-      if (event.target === modal) {
-        modal.classList.add("hidden")
-      }
-    })
+        modal.classList.add("hidden");
+    });
 
     function clearModal() {
-      document.getElementById("masterName").value = ""
-      document.getElementById("masterSpecialty").value = ""
-      document.getElementById("assignNumber").value = ""
-      document.getElementById("masterComment").value = ""
+        document.getElementById("masterName").value = "";
+        document.getElementById("masterSpecialty").value = ""; 
+        document.getElementById("assignNumber").value = "";
+        document.getElementById("masterComment").value = "";
     }
 
+    // Сохранение данных
     saveBtn.addEventListener("click", () => {
-      const payload = {
-        name: document.getElementById("masterName").value.trim(),
-        specialty: document.getElementById("masterSpecialty").value.trim(),
-        phone: document.getElementById("assignNumber").value.trim(),
-        comment: document.getElementById("masterComment").value.trim()
-      }
-      const url = editingMasterId ? `/api/update-master/${editingMasterId}` : "/api/add-master"
-      fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-      .then(() => {
-        editingMasterId = null
-        modal.classList.add("hidden")
-        loadMasters()
-      })
-      .catch(err => {
-        alert("Ошибка при сохранении мастера")
-        console.error(err)
-      })
-    })
+        const payload = {
+            name: document.getElementById("masterName").value.trim(),
+            specialty: document.getElementById("masterSpecialty").value.trim(),
+            phone: document.getElementById("assignNumber").value.trim(),
+            comment: document.getElementById("masterComment").value.trim()
+        };
 
-    function loadMasters() {
-      container.innerHTML = ""
-      fetch("/api/masters")
-        .then(res => res.json())
-        .then(data => {
-          if (!Array.isArray(data) || data.length === 0) {
-            container.innerHTML = "<p>Мастеров пока нет.</p>"
-            return
-          }
-          data.forEach(master => {
-            const card = document.createElement("div")
-            card.className = "master-card"
-            card.innerHTML = `
-              <h3>${master.name}</h3>
-              <p>Специализация: ${master.specialty}</p>
-              <p>Телефон: ${master.phone}</p>
-              <p>Примечание: ${master.comment || "—"}</p>
-              <div class="master-actions">
-                <button class="info-btn">Редактировать</button>
-                <button class="delete-btn">Удалить</button>
-              </div>
-            `
-            card.querySelector(".delete-btn").addEventListener("click", () => {
-              if (confirm("Удалить этого мастера?")) {
-                fetch(`/api/delete-master/${master.id}`, { method: "POST" })
-                  .then(() => loadMasters())
-                  .catch(() => alert("Ошибка при удалении"))
-              }
-            })
-            card.querySelector(".info-btn").addEventListener("click", () => {
-              editingMasterId = master.id
-              document.getElementById("masterName").value = master.name
-              document.getElementById("masterSpecialty").value = master.specialty
-              document.getElementById("assignNumber").value = master.phone
-              document.getElementById("masterComment").value = master.comment || ""
-              document.getElementById("modalTitle").textContent = "Редактировать мастера"
-              modal.classList.remove("hidden")
-            })
-            container.appendChild(card)
-          })
+        if (!payload.name || !payload.specialty) {
+            alert("Пожалуйста, заполните основные поля (ФИО и Специализация)");
+            return;
+        }
+
+        const url = editingMasterId ? `/api/update-master/${editingMasterId}` : "/api/add-master";
+        
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
         })
-    }
+        .then(res => {
+            if (!res.ok) throw new Error("Ошибка при сохранении");
+            return res.json();
+        })
+        .then(() => {
+            editingMasterId = null;
+            modal.classList.add("hidden");
+            loadMasters(); 
+        })
+        .catch(err => alert("Не удалось сохранить: " + err.message));
+    });
 
-    loadMasters()
-  })
+    // Функция загрузки списка
+function loadMasters() {
+    container.innerHTML = "<p class='loading'>Синхронизация с реестром...</p>";
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const recommendTag = urlParams.get('recommend_for')?.toLowerCase(); 
+
+    fetch("/api/masters")
+        .then(res => {
+            if (!res.ok) throw new Error("Ошибка сервера");
+            return res.json();
+        })
+        .then(data => {
+            container.innerHTML = ""; 
+
+            if (!Array.isArray(data) || data.length === 0) {
+                container.innerHTML = "<p class='empty-msg'>Реестр пуст. Добавьте первого мастера.</p>";
+                return;
+            }
+
+            // === 1. СОРТИРОВКА ===
+            // Рекомендованные мастера (у которых specialty совпадает с тегом) идут первыми
+            data.sort((a, b) => {
+                const specA = (a.specialty || "").toLowerCase();
+                const specB = (b.specialty || "").toLowerCase();
+                const isARec = recommendTag && specA === recommendTag;
+                const isBRec = recommendTag && specB === recommendTag;
+                return (isBRec === isARec) ? 0 : isARec ? -1 : 1;
+            });
+
+            // === 2. ОТРИСОВКА ===
+            data.forEach(master => {
+                try {
+                    const card = document.createElement("div");
+                    card.className = "master-card";
+                    
+                    const masterSpec = (master.specialty || "").toLowerCase();
+                    // Прямое сравнение: тег "energy" == специальность "energy"
+                    const isRecommended = recommendTag && masterSpec.includes(recommendTag);
+                    if (isRecommended) {
+                        card.classList.add("recommended-card");
+                    }
+
+                    card.innerHTML = `
+                        ${isRecommended ? `
+                            <div class="recommend-badge">
+                                <i class="fas fa-star"></i> РЕКОМЕНДУЕМ ДЛЯ [${recommendTag.toUpperCase()}]
+                            </div>` : ''}
+                        <h3>${master.name || "Без имени"}</h3>
+                        <div class="master-info">
+                            <div class="info-row">
+                                <i class="fas fa-briefcase"></i> 
+                                <span>${master.specialty || "Не указана"}</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fas fa-phone-alt"></i> 
+                                <span>${master.phone || "—"}</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fas fa-sticky-note"></i> 
+                                <span>${master.comment || "—"}</span>
+                            </div>
+                            <div class="info-row status-row">
+                                <i class="fas fa-tasks"></i>
+                                <span>Загрузка: <strong class="${(master.active_tasks_count >= 3) ? 'text-danger' : ''}">${master.active_tasks_count || 0}/3</strong></span>
+                            </div>
+                        </div>
+                        <div class="master-actions">
+                            <button class="info-btn"><i class="fas fa-edit"></i> Редактировать</button>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+
+                    // Привязка событий (Удаление/Редактирование)
+                    card.querySelector(".delete-btn").addEventListener("click", () => {
+                        if (confirm(`Удалить мастера ${master.name}?`)) {
+                            fetch(`/api/delete-master/${master.id}`, { method: "POST" }).then(() => loadMasters());
+                        }
+                    });
+
+                    card.querySelector(".info-btn").addEventListener("click", () => {
+                        editingMasterId = master.id;
+                        document.getElementById("masterName").value = master.name;
+                        document.getElementById("masterSpecialty").value = master.specialty;
+                        document.getElementById("assignNumber").value = master.phone;
+                        document.getElementById("masterComment").value = master.comment || "";
+                        document.getElementById("modalTitle").textContent = "Редактировать мастера";
+                        modal.classList.remove("hidden");
+                    });
+
+                    container.appendChild(card);
+                } catch (err) {
+                    console.error("Ошибка карточки:", err);
+                }
+            });
+        })
+        .catch(err => {
+            container.innerHTML = `<p class='error-msg'>Ошибка: ${err.message}</p>`;
+        });
+}
+    loadMasters();
+});
 </script>
 </body>
 </html>

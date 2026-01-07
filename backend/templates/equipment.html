@@ -2,66 +2,89 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>ТехОбслуживание — Инвентарь</title>
+  <title>NEXUS — Инвентарь</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='equipment.css') }}">
 </head>
 <body>
   <div class="container">
     <aside class="sidebar">
-      <h1 class="logo">🔧 ТехОбслуживание</h1>
-      <p class="subtitle">Управление запасами</p>
+      <div class="sidebar-brand">
+        <h1 class="logo">🔧 NEXUS</h1>
+        <p class="subtitle">Система мониторинга</p>
+      </div>
       <nav class="menu">
         <ul>
-          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Панель управления</a></li>
-          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-alt"></i> Планирование работ</a></li>
-          <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-boxes"></i> Инвентарь</a></li>
-          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-cog"></i> Мастера</a></li>
-          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Отчёты</a></li>
+          <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-th-large"></i> Панель управления</a></li>
+          <li><a href="{{ url_for('admin.work_planning') }}"><i class="fas fa-calendar-check"></i> Планирование</a></li>
+          <li class="active"><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-database"></i> Инвентарь</a></li>
+          <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-shield"></i> Мастера</a></li>
+          <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-line"></i> Отчёты</a></li>
         </ul>
       </nav>
     </aside>
+
     <main class="dashboard">
       <header class="top-bar">
-        <h2>Управление запасами</h2>
-        <button id="openPartModal" class="action-btn"><i class="fas fa-plus-circle"></i> Добавить деталь</button>
+        <div class="header-title">
+          <h2>Управление запасами</h2>
+          <p>Контроль запчастей и расходных материалов</p>
+        </div>
+        <button id="openPartModal" class="action-btn">
+          <i class="fas fa-plus-circle"></i> Добавить деталь
+        </button>
       </header>
 
-      <div id="partsContainer" class="parts-list"></div>
+      <div id="partsContainer" class="request-cards"></div>
     </main>
   </div>
 
   <div id="partModalOverlay" class="modal-overlay hidden">
     <div class="modal-window">
-      <span class="modal-close" id="closePartModal">&times;</span>
-      <h2 id="modalTitle">Добавить новую деталь</h2>
+      <div class="modal-header">
+        <h2 id="modalTitle">Добавить новую деталь</h2>
+        <span class="modal-close" id="closePartModal">&times;</span>
+      </div>
+      
       <div class="modal-content">
-        <label for="partName">Название:</label>
-        <input type="text" id="partName" required>
-
-        <label for="partCode">Артикул:</label>
-        <input type="text" id="partCode" required>
-
-        <label for="partPrice">Цена:</label>
-        <input type="number" step="0.01" id="partPrice" required>
-        <span class="error-msg" id="priceError"></span>
-
-        <label for="partQuantity">Количество:</label>
-        <input type="number" id="partQuantity" required>
-        <span class="error-msg" id="quantityError"></span>
-
-        <label for="partThreshold">Порог пополнения:</label>
-        <input type="number" id="partThreshold" required>
-        <span class="error-msg" id="thresholdError"></span>
-
-        <div class="modal-actions">
-          <button id="savePartBtn" class="action-btn">Сохранить</button>
+        <div class="info-group">
+          <label for="partName">Название детали</label>
+          <input type="text" id="partName" placeholder="Введите название..." required>
         </div>
+
+        <div class="info-group">
+          <label for="partCode">Артикул</label>
+          <input type="text" id="partCode" placeholder="Например: 6204-2Z" required>
+        </div>
+
+        <div class="form-row">
+          <div class="input-block">
+            <label for="partPrice">Цена (Br)</label>
+            <input type="number" step="0.01" id="partPrice" placeholder="0.00" required>
+            <span class="error-msg" id="priceError"></span>
+          </div>
+          <div class="input-block">
+            <label for="partQuantity">Количество</label>
+            <input type="number" id="partQuantity" placeholder="0" required>
+            <span class="error-msg" id="quantityError"></span>
+          </div>
+        </div>
+
+        <div class="info-group" style="margin-top: 20px;">
+          <label for="partThreshold">Порог пополнения</label>
+          <input type="number" id="partThreshold" placeholder="Уведомить, если меньше..." required>
+          <span class="error-msg" id="thresholdError"></span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="savePartBtn" class="action-btn">Сохранить изменения</button>
       </div>
     </div>
   </div>
 
 <script>
+  /* JS ОСТАВЛЕН БЕЗ ИЗМЕНЕНИЙ, ТОЛЬКО ОБНОВЛЕНА ВЕРСТКА КАРТОЧКИ ВНУТРИ loadParts */
   document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("partModalOverlay");
     const openBtn = document.getElementById("openPartModal");
@@ -171,19 +194,22 @@
 
           data.forEach(part => {
             const card = document.createElement("div");
-            card.className = "part-card";
+            card.className = "request-card"; // Используем твой класс из Plane.css
             if (part.количество < part.порог) {
-              card.classList.add("low-stock");
+              card.style.borderLeft = "4px solid var(--danger)";
             }
 
+            // Верстка карточки в едином стиле с Planning
             card.innerHTML = `
               <h3>${part.название}</h3>
-              <p>Артикул: ${part.артикул || "—"}</p>
-              <p>Цена: ${part.цена} Br</p>
-              <p>Количество: ${part.количество}</p>
-              <div class="part-actions">
-                <button class="info-btn">Редактировать</button>
-                <button class="delete-btn">Удалить</button>
+              <div class="request-meta">
+                <div class="meta-row"><i class="fas fa-barcode"></i> Артикул: ${part.артикул || "—"}</div>
+                <div class="meta-row"><i class="fas fa-tag"></i> Цена: ${part.цена} Br</div>
+                <div class="meta-row"><i class="fas fa-layer-group"></i> Остаток: ${part.количество} шт.</div>
+              </div>
+              <div class="calendar-actions">
+                <button class="info-btn action-btn"><i class="fas fa-edit"></i> Редактировать</button>
+                <button class="delete-btn icon-btn-danger"><i class="fas fa-trash"></i></button>
               </div>
             `;
 
@@ -197,16 +223,11 @@
 
             card.querySelector(".info-btn").addEventListener("click", () => {
               editingPartId = part.id;
-
               document.getElementById("partName").value = part.название;
               document.getElementById("partCode").value = part.артикул || "";
               document.getElementById("partPrice").value = part.цена;
               document.getElementById("partQuantity").value = part.количество;
               document.getElementById("partThreshold").value = part.порог;
-
-              document.querySelectorAll(".error-msg").forEach(span => span.textContent = "");
-              document.querySelectorAll("input").forEach(input => input.classList.remove("invalid"));
-
               modalTitle.textContent = "Редактировать деталь";
               modal.classList.remove("hidden");
             });

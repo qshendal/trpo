@@ -1,37 +1,153 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Выбор входа</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='Enter.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS — Профессиональное обслуживание</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='Enter.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="auth-wrapper">
-    <h2>Выберите способ входа</h2>
-    <div class="auth-buttons">
-      <form action="{{ url_for('client.guest_entry') }}" method="get">
-        <button type="submit" class="action-btn">Продолжить как гость</button>
-      </form>
-      <form action="{{ url_for('client.registration') }}" method="get">
-        <button type="submit" class="action-btn">Войти</button>
-      </form>
+
+    <div id="loader" class="loader-wrapper">
+        <div class="loader-content">
+            <div class="company-logo-loader">
+                <img src="{{ url_for('static', filename='nexus_logo.png') }}" alt="Nexus Logo" class="logo-img-loader">
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>    
+        </div>
+    </div>
+
+    <div class="main-content">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <img src="{{ url_for('static', filename='nexus_logo.png') }}" alt="Nexus Logo" class="logo-img-nav">
+                    NEXUS<span>SERVICE</span>
+                </div>
+                
+                <div class="nav-links">
+                    <a href="#catalog" class="nav-link-btn">Каталог услуг</a> 
+                    <a href="{{ url_for('client.registration') }}" class="nav-btn-primary">Личный кабинет</a> 
+                </div>
+            </div>
+        </nav>
+
+        <header class="auth-wrapper">
+            <div class="hero-info">
+                <span class="badge">Ecosystem for industry</span>
+                <h1>Умный сервис для вашего оборудования</h1>
+                <p>NEXUS — это единая цифровая среда для моментальной подачи заявок и контроля технического состояния ваших агрегатов.</p>
+                
+                <div class="auth-buttons">
+                    <a href="{{ url_for('client.guest_entry') }}" class="action-btn secondary">Продолжить как гость</a>
+                    <a href="{{ url_for('client.registration') }}" class="action-btn primary">Войти / Регистрация</a>
+                </div>
+            </div>
+        </header>
+
+<section id="catalog" class="catalog-section">
+    <div class="section-header">
+        <h2>Сферы обслуживания</h2>
+        <p>Выберите нужный департамент для оперативного решения задачи</p>
+    </div>
+    
+    <div class="catalog-grid">
+        <a href="{{ url_for('client.registration', category='energy') }}" class="catalog-card" style="background-image: url('https://images.unsplash.com/photo-1544724569-5f546fd6f2b5?auto=format&fit=crop&q=80&w=800');">
+            <div class="card-content">
+                <div class="card-tag">Energy</div>
+                <h3>Энергетика</h3>
+                <p>Силовые цепи, автоматика защиты и системы электроснабжения.</p>
+                <span class="card-link">Оформить выезд →</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('client.registration', category='mechanic') }}" class="catalog-card" style="background-image: url('https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=800');">
+            <div class="card-content">
+                <div class="card-tag">Mechanic</div>
+                <h3>Мехатроника</h3>
+                <p>Приводы, редукторы и сложные механические узлы станков.</p>
+                <span class="card-link">Оформить выезд →</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('client.registration', category='digital') }}" class="catalog-card" style="background-image: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800');">
+            <div class="card-content">
+                <div class="card-tag">Digital</div>
+                <h3>Digital-системы</h3>
+                <p>Прошивка контроллеров, калибровка датчиков и мониторинг.</p>
+                <span class="card-link">Оформить выезд →</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('client.registration', category='fluid') }}" class="catalog-card" style="background-image: url('https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800');">
+            <div class="card-content">
+                <div class="card-tag">Fluid</div>
+                <h3>Пневмогидравлика</h3>
+                <p>Вакуумные системы, насосные станции и контуры охлаждения.</p>
+                <span class="card-link">Оформить выезд →</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('client.registration', category='robotics') }}" class="catalog-card" style="background-image: url('https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&q=80&w=800');">
+            <div class="card-content">
+                <div class="card-tag">Robotics</div>
+                <h3>Робототехника</h3>
+                <p>Обслуживание манипуляторов, сервоприводов и настройка ПО.</p>
+                <span class="card-link">Оформить выезд →</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('client.registration', category='it') }}" class="catalog-card" style="background-image: url('https://images.unsplash.com/photo-1558494949-ef010cbdcc48?auto=format&fit=crop&q=80&w=800');">
+            <div class="card-content">
+                <div class="card-tag">Infrastructure</div>
+                <h3>IT-Инфраструктура</h3>
+                <p>Серверное оборудование, сетевые узлы и базы данных.</p>
+                <span class="card-link">Оформить выезд →</span>
+            </div>
+        </a>
+    </div>
+</section>
     </div>
 
     <div id="loginErrorPopup" class="hidden">
-      {{ login_error }}
+        <div class="error-icon">⚠️</div>
+        <span id="errorTextContainer"></span>
     </div>
-  </div>
 
-  <script>
-    const errorText = "{{ login_error }}";
-    const popup = document.getElementById("loginErrorPopup");
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loader = document.getElementById('loader');
+            
+            const exitSequence = () => {
+                setTimeout(() => {
+                    if(loader) {
+                        loader.classList.add('fade-out');
+                        setTimeout(() => {
+                            loader.remove();
+                            document.body.style.overflow = 'auto';
+                        }, 800);
+                    }
+                }, 1500); 
+            };
 
-    if (errorText && popup) {
-      popup.classList.remove("hidden");
-      setTimeout(() => popup.classList.add("hidden"), 3000);
-    }
-  </script>
+            if (document.readyState === 'complete') {
+                exitSequence();
+            } else {
+                window.addEventListener('load', exitSequence);
+            }
+
+            const errorFromBackend = "{{ login_error if login_error else '' }}";
+            if (errorFromBackend && errorFromBackend !== "None" && errorFromBackend.trim() !== "") {
+                const popup = document.getElementById("loginErrorPopup");
+                const container = document.getElementById("errorTextContainer");
+                container.textContent = errorFromBackend;
+                popup.classList.remove("hidden");
+                setTimeout(() => popup.classList.add("hidden"), 4000);
+            }
+        });
+    </script>
 </body>
 </html>

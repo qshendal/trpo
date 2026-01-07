@@ -1,221 +1,293 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Мои заявки</title>
+  <title>NEXUS — Заявки</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='Requests.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="requests-wrapper">
-    <h2>Мои заявки</h2>
 
-    <a href="{{ url_for('client.user_panel') }}" class="back-button">
-      ← Назад
-    </a>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-avatar">🔗</div>
+        NEXUS<span>TASKS</span> 
+      </div>
+      <a href="{{ url_for('client.user_panel') }}" class="nav-btn secondary">← Назад в меню</a>
+    </div>
+  </nav>
 
-    <div class="status-block">
-      <h3 class="status-title">🕓 В ожидании</h3>
-      <div id="pendingRequests" class="request-list"></div>
+  <div class="main-content requests-page">
+    <div class="page-header">
+      <h2>Управление заявками</h2>
     </div>
 
-    <div class="status-block">
-      <h3 class="status-title">🔧 В работе</h3>
-      <div id="inProgressRequests" class="request-list"></div>
-    </div>
+    <div class="kanban-board">
+      <div class="kanban-column">
+        <div class="column-header pending">
+          <span class="dot"></span> В ожидании
+        </div>
+        <div id="pendingRequests" class="request-list">
+          </div>
+      </div>
 
-    <div class="status-block">
-      <h3 class="status-title">💰 В ожидании оплаты</h3>
-      <div id="paymentRequests" class="request-list"></div>
+      <div class="kanban-column">
+        <div class="column-header progress">
+          <span class="dot"></span> В работе
+        </div>
+        <div id="inProgressRequests" class="request-list"></div>
+      </div>
+
+      <div class="kanban-column">
+        <div class="column-header payment">
+          <span class="dot"></span> Оплата
+        </div>
+        <div id="paymentRequests" class="request-list"></div>
+      </div>
     </div>
   </div>
 
   <div id="paymentModalOverlay" class="modal-overlay hidden">
     <div class="modal-window">
-      <span class="modal-close" onclick="document.getElementById('paymentModalOverlay').classList.add('hidden')">&times;</span>
-      <h2>Оплата заявки</h2>
+      <div class="modal-header">
+        <h3>Оплата услуги</h3>
+        <span class="modal-close" onclick="document.getElementById('paymentModalOverlay').classList.add('hidden')">&times;</span>
+      </div>
+      
       <div class="modal-content">
-        <p><strong>Название:</strong> <span id="modalTaskName"></span></p>
-        <p><strong>Дата заявки:</strong> <span id="modalTaskDeadline"></span></p>
-        <p><strong>Описание:</strong> <span id="modalTaskDescription"></span></p>
-        <p><strong>Исполнитель:</strong> <span id="modalTaskExecutor"></span></p>
-        <p><strong>Сумма к оплате:</strong> <span id="modalTaskCost"></span> руб.</p>
-        <p><strong>Тип карты:</strong> <span id="modalCardType"></span></p>
-        <hr>
-        <label>Введите данные карты:</label>
-        <div class="card-form">
-          <input type="text" id="cardNumber" placeholder="Номер карты" maxlength="19">
-          <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
-          <input type="text" id="cardCVC" placeholder="CVC" maxlength="3">
+        <div class="bill-info">
+          <div class="bill-row">
+            <span>Услуга</span>
+            <strong id="modalTaskName"></strong>
+          </div>
+          <div class="bill-row">
+            <span>Исполнитель</span>
+            <span id="modalTaskExecutor"></span>
+          </div>
+          <div class="bill-total">
+            <span>К оплате:</span>
+            <h2 id="modalTaskCost">0 ₽</h2>
+          </div>
         </div>
-        <div class="modal-actions">
-          <button id="confirmPaymentBtn" class="action-btn">Подтвердить</button>
+        
+        <span id="modalTaskDeadline" style="display:none"></span>
+        <span id="modalTaskDescription" style="display:none"></span>
+
+        <hr class="divider">
+        
+        <label class="input-label">Данные карты <span id="modalCardType" class="card-type-badge"></span></label>
+        
+        <div class="credit-card-form">
+          <div class="input-group full">
+            <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19">
+            <span class="icon">💳</span>
+          </div>
+          <div class="row-inputs">
+            <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+            <input type="text" id="cardCVC" placeholder="CVC" maxlength="3">
+          </div>
         </div>
+
+        <button id="confirmPaymentBtn" class="action-btn primary full-width">Оплатить счет</button>
       </div>
     </div>
   </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const pendingContainer = document.getElementById("pendingRequests");
-      const inProgressContainer = document.getElementById("inProgressRequests");
-      const paymentContainer = document.getElementById("paymentRequests");
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const pendingContainer = document.getElementById("pendingRequests");
+    const inProgressContainer = document.getElementById("inProgressRequests");
+    const paymentContainer = document.getElementById("paymentRequests");
 
-      fetch("/api/my-requests")
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("Ошибка сервера: " + response.status);
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (!Array.isArray(data) || data.length === 0) {
-            pendingContainer.innerHTML = "<p>У вас пока нет заявок.</p>";
-            inProgressContainer.innerHTML = "";
-            paymentContainer.innerHTML = "";
-            return;
-          }
+    // --- Функция генерации карточки ---
+    const createCardHTML = (task, showExecutor, showPayBtn) => {
+      return `
+        <div class="request-card-item">
+          <div class="card-top">
+            <span class="card-id">#${task.id || 'ID'}</span>
+            <span class="card-date">${task.deadline || 'Без даты'}</span>
+          </div>
+          <h4>${task.name}</h4>
+          <p class="desc">${task.description}</p>
+          ${showExecutor ? `<div class="executor-badge">👤 ${task.executor}</div>` : ''}
+          ${showPayBtn ? `<button class="pay-btn-small" onclick='openPaymentModal(${JSON.stringify(task)})'>Оплатить</button>` : ''}
+        </div>
+      `;
+    };
 
-          pendingContainer.innerHTML = "";
-          inProgressContainer.innerHTML = "";
-          paymentContainer.innerHTML = "";
-
-          data.forEach(task => {
-            const status = task.type.toLowerCase();
-
-            const card = document.createElement("div");
-            card.className = "request-card";
-            card.innerHTML = `
-              <h3>${task.name}</h3>
-              <p><strong>Статус:</strong> ${task.type}</p>
-              <p><strong>Дата заявки:</strong> ${task.deadline}</p>
-              <p><strong>Описание:</strong> ${task.description}</p>
-              ${status !== "новая" && status !== "в ожидании"
-                ? `<p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>`
-                : ""}
-            `;
-
-            if (status === "новая" || status === "в ожидании") {
-              pendingContainer.appendChild(card);
-            } else if (status === "в работе") {
-              inProgressContainer.appendChild(card);
-            } else if (status === "в ожидании оплаты") {
-              const payBtn = document.createElement("button");
-              payBtn.className = "action-btn";
-              payBtn.textContent = "Оплатить";
-              payBtn.onclick = () => openPaymentModal(task);
-              card.appendChild(payBtn);
-
-              paymentContainer.appendChild(card);
-            }
-          });
-        })
-        .catch(error => {
-          console.error("Ошибка при загрузке заявок:", error);
-          pendingContainer.innerHTML = "<p>Не удалось загрузить заявки. Попробуйте позже.</p>";
-          inProgressContainer.innerHTML = "";
-          paymentContainer.innerHTML = "";
-        });
-    });
-
-    function openPaymentModal(task) {
-      document.getElementById("modalTaskName").textContent = task.name || "";
-      document.getElementById("modalTaskName").dataset.requestId = task.id;
+    // --- Открытие модалки оплаты ---
+    window.openPaymentModal = function(task) {
+      const modalName = document.getElementById("modalTaskName");
+      modalName.textContent = task.name || "";
+      modalName.dataset.requestId = task.id;
+      
       document.getElementById("modalTaskDeadline").textContent = task.deadline || "";
       document.getElementById("modalTaskDescription").textContent = task.description || "";
       document.getElementById("modalTaskExecutor").textContent = task.executor || "Не назначен";
+      document.getElementById("modalTaskCost").textContent = "Загрузка...";
 
       fetch(`/api/request-cost/${task.id}`)
         .then(res => res.json())
         .then(data => {
-          document.getElementById("modalTaskCost").textContent = data.total || 0;
+          document.getElementById("modalTaskCost").textContent = (data.total || 0) + " ₽";
         })
         .catch(() => {
-          document.getElementById("modalTaskCost").textContent = "Ошибка";
+          document.getElementById("modalTaskCost").textContent = "Ошибка цены";
         });
 
       document.getElementById("paymentModalOverlay").classList.remove("hidden");
-    }
+    };
 
-    function getCardType(cardNumber) {
-      if (/^4/.test(cardNumber)) return "Visa";
-      if (/^5[1-5]/.test(cardNumber)) return "MasterCard";
-      if (/^2(2[2-9]|[3-6]|7[01]|720)/.test(cardNumber)) return "MasterCard";
-      return "";
-    }
-
-    const cardNumberInput = document.getElementById("cardNumber");
-    cardNumberInput.addEventListener("input", () => {
-      let value = cardNumberInput.value.replace(/\D/g, ""); 
-      value = value.substring(0, 16); 
-      let formatted = value.match(/.{1,4}/g);
-      cardNumberInput.value = formatted ? formatted.join(" ") : "";
-
-      const cardType = getCardType(value);
-      document.getElementById("modalCardType").textContent = cardType;
-    });
-
-    const cardExpiryInput = document.getElementById("cardExpiry");
-    cardExpiryInput.addEventListener("input", () => {
-      let value = cardExpiryInput.value.replace(/\D/g, ""); 
-      value = value.substring(0, 4); 
-
-      if (value.length >= 3) {
-        cardExpiryInput.value = value.substring(0, 2) + "/" + value.substring(2);
-      } else {
-        cardExpiryInput.value = value;
-      }
-    });
-
-    document.getElementById("confirmPaymentBtn").addEventListener("click", () => {
-      const cardNumberRaw = cardNumberInput.value.replace(/\s/g, "");
-      const cardExpiry = document.getElementById("cardExpiry").value.trim();
-      const cardCVC = document.getElementById("cardCVC").value.trim();
-
-      if (!/^\d{16}$/.test(cardNumberRaw)) {
-        alert("Введите корректный номер карты (16 цифр).");
-        return;
-      }
-      if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiry)) {
-        alert("Введите срок действия в формате MM/YY.");
-        return;
-      }
-      if (!/^\d{3}$/.test(cardCVC)) {
-        alert("Введите корректный CVC (3 цифры).");
-        return;
-      }
-
-      const cardType = getCardType(cardNumberRaw);
-      if (!cardType) {
-        alert("Номер карты не похож на Visa или MasterCard.");
-        return;
-      }
-
-      const requestId = document.getElementById("modalTaskName").dataset.requestId;
-
-      fetch(`/api/pay-request/${requestId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardNumber: cardNumberRaw, cardExpiry, cardCVC })
+    // --- Загрузка данных списка ---
+    fetch("/api/my-requests")
+      .then(response => {
+        if (!response.ok) throw new Error("Ошибка сервера");
+        return response.json();
       })
-        .then(res => {
-          if (!res.ok) throw new Error("Ошибка оплаты");
-          return res.json();
+      .then(data => {
+        pendingContainer.innerHTML = ""; 
+        inProgressContainer.innerHTML = ""; 
+        paymentContainer.innerHTML = "";
+
+        if (!Array.isArray(data) || data.length === 0) {
+          pendingContainer.innerHTML = "<div class='empty-state'>Заявок пока нет</div>";
+          return;
+        }
+
+        data.forEach(task => {
+          const status = task.type.toLowerCase();
+          const el = document.createElement('div');
+          
+          if (status === "новая" || status === "в ожидании") {
+        el.innerHTML = createCardHTML(task, false, false);
+        pendingContainer.appendChild(el);
+    } 
+    else if (status === "в работе") {
+        el.innerHTML = createCardHTML(task, true, false);
+        inProgressContainer.appendChild(el);
+    } 
+    else if (status === "в ожидании оплаты") {
+        el.innerHTML = createCardHTML(task, true, true);
+        paymentContainer.appendChild(el);
+    }
+        });
+      })
+      .catch(error => {
+        console.error(error);
+        pendingContainer.innerHTML = "<p>Не удалось загрузить данные</p>";
+      });
+  });
+
+// --- ВАЛИДАЦИЯ КАРТЫ (АЛГОРИТМ ЛУНА) ---
+function validateLuhn(number) {
+    let sum = 0;
+    let shouldDouble = false;
+    // Очищаем на случай, если попали лишние символы
+    const sanitized = number.replace(/\D/g, "");
+    for (let i = sanitized.length - 1; i >= 0; i--) {
+        let digit = parseInt(sanitized.charAt(i));
+        if (shouldDouble) {
+            if ((digit *= 2) > 9) digit -= 9;
+        }
+        sum += digit;
+        shouldDouble = !shouldDouble;
+    }
+    return (sum % 10) === 0 && sanitized.length > 0;
+}
+
+function getCardType(cardNumber) {
+    const value = cardNumber.replace(/\D/g, "");
+    if (/^4/.test(value)) return "Visa";
+    if (/^5[1-5]/.test(value) || /^2(2[2-9]|[3-6]|7[01]|720)/.test(value)) return "MasterCard";
+    if (/^220[0-4]/.test(value)) return "МИР";
+    return "";
+}
+// --- ОБРАБОТЧИКИ ВВОДА ---
+// Объявляем переменные на верхнем уровне, чтобы они были доступны везде
+const cardNumberInput = document.getElementById("cardNumber");
+const cardExpiryInput = document.getElementById("cardExpiry");
+const cardCVCInput = document.getElementById("cardCVC");
+const confirmBtn = document.getElementById("confirmPaymentBtn");
+
+if (cardNumberInput) {
+    cardNumberInput.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/\D/g, "");
+        if (value.length > 16) value = value.substring(0, 16);
+        let formatted = value.match(/.{1,4}/g);
+        e.target.value = formatted ? formatted.join(" ") : value;
+        const typeEl = document.getElementById("modalCardType");
+        if (typeEl && typeof getCardType === "function") typeEl.textContent = getCardType(value);
+    });
+}
+
+if (cardExpiryInput) {
+    cardExpiryInput.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/\D/g, "");
+        if (value.length > 4) value = value.substring(0, 4);
+        if (value.length > 2) {
+            e.target.value = value.substring(0, 2) + "/" + value.substring(2);
+        } else {
+            e.target.value = value;
+        }
+    });
+}
+// --- ФИНАЛЬНОЕ ПОДТВЕРЖДЕНИЕ ОПЛАТЫ ---
+if (confirmBtn) {
+    confirmBtn.onclick = function() {
+        const btn = this;
+        
+        // 1. ПОЛУЧАЕМ РЕАЛЬНЫЙ ID ЗАЯВКИ (из dataset модалки)
+        // Это самое важное, чтобы обновился статус именно НУЖНОЙ карточки
+        const requestId = document.getElementById("modalTaskName").dataset.requestId;
+
+        const rawInput = document.getElementById("cardNumber").value;
+        const cardNumberRaw = rawInput.replace(/\D/g, "");
+
+        if (cardNumberRaw.length < 16) {
+            alert("Ошибка: введите 16 цифр карты.");
+            return;
+        }
+
+        const cardExpiry = document.getElementById("cardExpiry").value.trim();
+        const cardCVC = document.getElementById("cardCVC").value.replace(/\D/g, "");
+
+        // Блокируем кнопку
+        btn.disabled = true;
+        btn.textContent = "Обработка...";
+
+        // Отправляем запрос
+        fetch(`/api/pay-request/${requestId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                cardNumber: cardNumberRaw, // Шлем РЕАЛЬНЫЙ номер
+                cardExpiry: cardExpiry, 
+                cardCVC: cardCVC 
+            })
         })
+        .then(res => res.json())
         .then(data => {
-          if (data.success) {
-            alert(`Оплата прошла успешно! Тип карты: ${cardType}`);
-            document.getElementById("paymentModalOverlay").classList.add("hidden");
-            location.reload();
-          } else {
-            alert("Ошибка: " + data.error);
-          }
+            if (data.success) {
+                // ПОСЛЕ ЭТОГО КАРТОЧКА ИСЧЕЗНЕТ
+                alert("Оплата прошла успешно!");
+                location.reload(); 
+                // Т.к. статус в БД теперь "оплачено", 
+                // а в твоем цикле рендеринга нет условия для этого статуса,
+                // карточка просто не отрисуется.
+            } else {
+                alert("Ошибка: " + (data.error || "код 400"));
+                btn.disabled = false;
+                btn.textContent = "Подтвердить оплату";
+            }
         })
         .catch(err => {
-          alert("Ошибка: " + err.message);
+            alert("Ошибка сети");
+            btn.disabled = false;
+            btn.textContent = "Подтвердить оплату";
         });
-    });
-  </script>
+    };
+}
+</script>
 </body>
 </html>
