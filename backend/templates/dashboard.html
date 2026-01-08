@@ -20,7 +20,13 @@
           <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-database"></i> Инвентарь</a></li>
           <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-shield"></i> Мастера</a></li>
           <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-line"></i> Отчёты</a></li>
-        </ul>
+          <hr style="margin: 20px 0; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <li class="logout-item">
+              <a href="{{ url_for('admin.logout') }}" class="logout-link" style="color: #fda4af !important;">
+                <i class="fas fa-sign-out-alt"></i> <span>Выйти из системы</span>
+              </a>
+            </li>
+        </ul> 
       </nav>
     </aside>
 

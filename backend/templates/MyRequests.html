@@ -180,31 +180,37 @@
   });
 
 // --- ВАЛИДАЦИЯ КАРТЫ (АЛГОРИТМ ЛУНА) ---
-function validateLuhn(number) {
-    let sum = 0;
-    let shouldDouble = false;
-    // Очищаем на случай, если попали лишние символы
-    const sanitized = number.replace(/\D/g, "");
-    for (let i = sanitized.length - 1; i >= 0; i--) {
-        let digit = parseInt(sanitized.charAt(i));
-        if (shouldDouble) {
-            if ((digit *= 2) > 9) digit -= 9;
-        }
-        sum += digit;
-        shouldDouble = !shouldDouble;
-    }
-    return (sum % 10) === 0 && sanitized.length > 0;
-}
+function validateExpiry(expiryString) {
+    const parts = expiryString.split('/');
+    if (parts.length !== 2) return false;
 
+    const month = parseInt(parts[0], 10);
+    const year = parseInt("20" + parts[1], 10); // Превращаем 25 в 2025
+
+    if (isNaN(month) || isNaN(year)) return false;
+    if (month < 1 || month > 12) return false;
+
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    // Проверка: год меньше текущего ИЛИ (год текущий и месяц меньше текущего)
+    if (year < currentYear || (year === currentYear && month < currentMonth)) {
+        return "expired"; // Карта просрочена
+    }
+
+    return true; // Все ок
+}
 function getCardType(cardNumber) {
     const value = cardNumber.replace(/\D/g, "");
+    // Определяем по первым цифрам
     if (/^4/.test(value)) return "Visa";
     if (/^5[1-5]/.test(value) || /^2(2[2-9]|[3-6]|7[01]|720)/.test(value)) return "MasterCard";
     if (/^220[0-4]/.test(value)) return "МИР";
-    return "";
+    return "Неизвестная карта";
 }
 // --- ОБРАБОТЧИКИ ВВОДА ---
-// Объявляем переменные на верхнем уровне, чтобы они были доступны везде
+// --- ОБРАБОТЧИКИ ВВОДА ---
 const cardNumberInput = document.getElementById("cardNumber");
 const cardExpiryInput = document.getElementById("cardExpiry");
 const cardCVCInput = document.getElementById("cardCVC");
@@ -214,10 +220,17 @@ if (cardNumberInput) {
     cardNumberInput.addEventListener("input", (e) => {
         let value = e.target.value.replace(/\D/g, "");
         if (value.length > 16) value = value.substring(0, 16);
+        
+        // Форматирование 0000 0000 0000 0000
         let formatted = value.match(/.{1,4}/g);
         e.target.value = formatted ? formatted.join(" ") : value;
+
+        // Определяем тип карты
         const typeEl = document.getElementById("modalCardType");
-        if (typeEl && typeof getCardType === "function") typeEl.textContent = getCardType(value);
+        if (typeEl) {
+            typeEl.textContent = getCardType(value);
+            typeEl.style.color = (typeEl.textContent === "Неизвестная карта") ? "gray" : "#2563eb";
+        }
     });
 }
 
@@ -225,66 +238,82 @@ if (cardExpiryInput) {
     cardExpiryInput.addEventListener("input", (e) => {
         let value = e.target.value.replace(/\D/g, "");
         if (value.length > 4) value = value.substring(0, 4);
-        if (value.length > 2) {
+        
+        if (value.length >= 2) {
             e.target.value = value.substring(0, 2) + "/" + value.substring(2);
         } else {
             e.target.value = value;
         }
     });
 }
-// --- ФИНАЛЬНОЕ ПОДТВЕРЖДЕНИЕ ОПЛАТЫ ---
+
+// --- ФИНАЛЬНОЕ ПОДТВЕРЖДЕНИЕ ---
 if (confirmBtn) {
     confirmBtn.onclick = function() {
         const btn = this;
+        const cardNumberRaw = cardNumberInput.value.replace(/\D/g, "");
+        const expiryValue = cardExpiryInput.value.trim();
+        const cvcValue = cardCVCInput.value.replace(/\D/g, "");
         
-        // 1. ПОЛУЧАЕМ РЕАЛЬНЫЙ ID ЗАЯВКИ (из dataset модалки)
-        // Это самое важное, чтобы обновился статус именно НУЖНОЙ карточки
-        const requestId = document.getElementById("modalTaskName").dataset.requestId;
-
-        const rawInput = document.getElementById("cardNumber").value;
-        const cardNumberRaw = rawInput.replace(/\D/g, "");
-
-        if (cardNumberRaw.length < 16) {
-            alert("Ошибка: введите 16 цифр карты.");
+        const cardType = getCardType(cardNumberRaw);
+        if (cardType === "Неизвестная карта") {
+            alert("Ошибка: Платежная система не поддерживается. Используйте карту МИР, Visa или MasterCard.");
+            cardNumberInput.focus();
+            return;
+        }
+        // 1. Проверка номера (ровно 16)
+        if (cardNumberRaw.length !== 16) {
+            alert("Ошибка: Номер карты должен содержать 16 цифр.");
+            cardNumberInput.focus();
             return;
         }
 
-        const cardExpiry = document.getElementById("cardExpiry").value.trim();
-        const cardCVC = document.getElementById("cardCVC").value.replace(/\D/g, "");
+        // 2. Проверка даты
+        const expiryStatus = validateExpiry(expiryValue);
+        if (expiryStatus === false) {
+            alert("Ошибка: Введите дату в формате ММ/ГГ (например, 05/26).");
+            cardExpiryInput.focus();
+            return;
+        } else if (expiryStatus === "expired") {
+            alert("Оплата отклонена: Срок действия карты истек.");
+            return;
+        }
 
-        // Блокируем кнопку
+        // 3. Проверка CVC (3 цифры)
+        if (cvcValue.length < 3) {
+            alert("Ошибка: Введите 3 цифры CVC кода на обороте.");
+            cardCVCInput.focus();
+            return;
+        }
+
+        // Если всё ок — отправляем
+        const requestId = document.getElementById("modalTaskName").dataset.requestId;
         btn.disabled = true;
         btn.textContent = "Обработка...";
 
-        // Отправляем запрос
         fetch(`/api/pay-request/${requestId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
-                cardNumber: cardNumberRaw, // Шлем РЕАЛЬНЫЙ номер
-                cardExpiry: cardExpiry, 
-                cardCVC: cardCVC 
+                cardNumber: cardNumberRaw, 
+                cardExpiry: expiryValue, 
+                cardCVC: cvcValue 
             })
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // ПОСЛЕ ЭТОГО КАРТОЧКА ИСЧЕЗНЕТ
                 alert("Оплата прошла успешно!");
                 location.reload(); 
-                // Т.к. статус в БД теперь "оплачено", 
-                // а в твоем цикле рендеринга нет условия для этого статуса,
-                // карточка просто не отрисуется.
             } else {
-                alert("Ошибка: " + (data.error || "код 400"));
+                alert("Ошибка: " + (data.error || "Платеж отклонен банком"));
                 btn.disabled = false;
                 btn.textContent = "Подтвердить оплату";
             }
         })
-        .catch(err => {
+        .catch(() => {
             alert("Ошибка сети");
             btn.disabled = false;
-            btn.textContent = "Подтвердить оплату";
         });
     };
 }

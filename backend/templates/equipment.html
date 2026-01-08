@@ -20,6 +20,12 @@
           <li class="active"><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-database"></i> Инвентарь</a></li>
           <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-shield"></i> Мастера</a></li>
           <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-line"></i> Отчёты</a></li>
+          <hr style="margin: 20px 0; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <li class="logout-item">
+              <a href="{{ url_for('admin.logout') }}" class="logout-link" style="color: #fda4af !important;">
+                <i class="fas fa-sign-out-alt"></i> <span>Выйти из системы</span>
+              </a>
+            </li>
         </ul>
       </nav>
     </aside>
@@ -140,46 +146,76 @@
     setupLiveValidation("partQuantity", "quantityError");
     setupLiveValidation("partThreshold", "thresholdError");
 
-    saveBtn.addEventListener("click", () => {
-      const price = parseFloat(document.getElementById("partPrice").value || 0);
-      const quantity = parseInt(document.getElementById("partQuantity").value || 0);
-      const threshold = parseInt(document.getElementById("partThreshold").value || 0);
+saveBtn.addEventListener("click", () => {
+  // 1. Получаем ссылки на элементы
+  const nameInput = document.getElementById("partName");
+  const codeInput = document.getElementById("partCode");
+  const priceInput = document.getElementById("partPrice");
+  const quantityInput = document.getElementById("partQuantity");
+  const thresholdInput = document.getElementById("partThreshold");
 
-      let hasError = false;
-      if (price < 0 || quantity < 0 || threshold < 0) hasError = true;
+  // 2. Сбрасываем предыдущие ошибки
+  document.querySelectorAll(".modal-content input").forEach(input => input.classList.remove("invalid"));
 
-      if (hasError) {
-        alert("Цена, количество и порог не могут быть меньше 0.");
-        return;
-      }
+  // 3. Считываем значения
+  const name = nameInput.value.trim();
+  const code = codeInput.value.trim();
+  const priceRaw = priceInput.value.trim();
+  const quantityRaw = quantityInput.value.trim();
+  const thresholdRaw = thresholdInput.value.trim();
 
-      const payload = {
-        название: document.getElementById("partName").value,
-        артикул: document.getElementById("partCode").value,
-        цена: price,
-        количество: quantity,
-        порог: threshold
-      };
+  // 4. ПРОВЕРКА НА ПУСТЫЕ ПОЛЯ
+  let emptyFields = [];
+  if (!name) emptyFields.push(nameInput);
+  if (!code) emptyFields.push(codeInput);
+  if (priceRaw === "") emptyFields.push(priceInput);
+  if (quantityRaw === "") emptyFields.push(quantityInput);
+  if (thresholdRaw === "") emptyFields.push(thresholdInput);
 
-      const url = editingPartId
-        ? `/api/update-part/${editingPartId}`
-        : "/api/add-part";
+  if (emptyFields.length > 0) {
+    emptyFields.forEach(input => input.classList.add("invalid"));
+    alert("Пожалуйста, заполните все поля формы.");
+    return;
+  }
 
-      fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }).then(() => {
-        editingPartId = null;
-        clearModal();
-        modal.classList.add("hidden");
-        loadParts();
-      }).catch(err => {
-        alert("Ошибка при сохранении детали");
-        console.error(err);
-      });
-    });
+  // 5. ПРОВЕРКА НА ЧИСЛОВЫЕ ЗНАЧЕНИЯ
+  const price = parseFloat(priceRaw);
+  const quantity = parseInt(quantityRaw);
+  const threshold = parseInt(thresholdRaw);
 
+  if (isNaN(price) || price < 0 || isNaN(quantity) || quantity < 0 || isNaN(threshold) || threshold < 0) {
+    alert("Цена, количество и порог должны быть положительными числами.");
+    return;
+  }
+
+  // 6. ФОРМИРОВАНИЕ ДАННЫХ И ОТПРАВКА
+  const payload = {
+    название: name,
+    артикул: code,
+    цена: price,
+    количество: quantity,
+    порог: threshold
+  };
+
+  const url = editingPartId
+    ? `/api/update-part/${editingPartId}`
+    : "/api/add-part";
+
+  fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  }).then(res => {
+    if (!res.ok) throw new Error("Ошибка сервера");
+    editingPartId = null;
+    clearModal();
+    modal.classList.add("hidden");
+    loadParts();
+  }).catch(err => {
+    alert("Ошибка при сохранении детали");
+    console.error(err);
+  });
+});
     function loadParts() {
       const container = document.getElementById("partsContainer");
       container.innerHTML = "";

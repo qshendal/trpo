@@ -20,6 +20,12 @@
           <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-database"></i> Инвентарь</a></li>
           <li><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-shield"></i> Мастера</a></li>
           <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-line"></i> Отчёты</a></li>
+          <hr style="margin: 20px 0; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <li class="logout-item">
+              <a href="{{ url_for('admin.logout') }}" class="logout-link" style="color: #fda4af !important;">
+                <i class="fas fa-sign-out-alt"></i> <span>Выйти из системы</span>
+              </a>
+            </li>
         </ul>
       </nav>
     </aside>
@@ -178,24 +184,41 @@
       loadCalendarTasks();
     }
   }
+const priorityWeight = {
+    'высокий': 1,
+    'средний': 2,
+    'низкий': 3,
+    'не указан': 4,
+    '': 4
+};
 
+function sortByPriority(a, b) {
+    const weightA = priorityWeight[(a.priority || "").toLowerCase()] || 4;
+    const weightB = priorityWeight[(b.priority || "").toLowerCase()] || 4;
+    return weightA - weightB;
+}
 function loadCalendarTasks() {
     fetch('/api/calendar-tasks')
       .then(res => res.json())
       .then(data => {
-        // Заполняем основные колонки
-        renderTasks(data.active, document.getElementById("calendarTasks"), "active");
-        renderTasks(data.awaiting_payment, document.getElementById("awaitingPaymentTasks"), "awaiting_payment");
+        // Сортируем активные задачи
+        const sortedActive = (data.active || []).sort(sortByPriority);
+        // Сортируем задачи в ожидании оплаты
+        const sortedAwaiting = (data.awaiting_payment || []).sort(sortByPriority);
+        // Историю обычно не сортируют по приоритету (там важнее дата), но если нужно:
+        const sortedCompleted = (data.completed || []).sort(sortByPriority);
+
+        renderTasks(sortedActive, document.getElementById("calendarTasks"), "active");
+        renderTasks(sortedAwaiting, document.getElementById("awaitingPaymentTasks"), "awaiting_payment");
         
-        // ВАЖНО: Заполняем новую колонку Истории
         const completedContainer = document.getElementById("completedTasks");
-        if (completedContainer && data.completed) {
-            renderTasks(data.completed, completedContainer, "completed");
+        if (completedContainer) {
+            renderTasks(sortedCompleted, completedContainer, "completed");
         }
       })
       .catch(err => console.error("Ошибка загрузки истории:", err));
 }
-  function renderTasks(tasks, container, type) {
+function renderTasks(tasks, container, type) {
     container.innerHTML = "";
     if (!Array.isArray(tasks) || tasks.length === 0) {
       container.innerHTML = "<p>Нет задач.</p>";
@@ -203,23 +226,36 @@ function loadCalendarTasks() {
     }
 
     tasks.forEach(task => {
+      // 1. ОПРЕДЕЛЯЕМ ЦВЕТ ПРИОРИТЕТА
+      let priorityClass = 'priority-default';
+      const p = (task.priority || "").toLowerCase();
+
+      if (p === 'высокий') priorityClass = 'priority-high';
+      else if (p === 'средний') priorityClass = 'priority-medium';
+      else if (p === 'низкий') priorityClass = 'priority-low';
+
       const card = document.createElement("div");
       card.className = "calendar-card";
-      card.innerHTML = `
-        <h3>${task.name}</h3>
-        <p><strong>Дата заявки:</strong> ${task.deadline}</p>
-        <p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>
-        <p><strong>Приоритет:</strong> ${task.priority}</p>
-        <p><strong>Назначенная деталь:</strong> ${
-          task.assignedPart
-            ? `${task.assignedPart.name} (${task.assignedPart.qty} шт.)`
-            : "Не назначена"
-        }</p>
-        <div class="calendar-actions"></div>
-      `;
-
+      
+      // 2. ФОРМИРУЕМ HTML (Приоритет перенесен после исполнителя)
+// Находишь внутри renderTasks место, где формируется card.innerHTML
+card.innerHTML = `
+    <h3>${task.name}</h3>
+    <p><strong>Дата заявки:</strong> ${task.deadline}</p>
+    <p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>
+    
+    <p><strong>Приоритет:</strong> <span class="priority-badge ${priorityClass}">${task.priority || 'не указан'}</span></p>
+    
+    <p><strong>Деталь:</strong> ${
+      task.assignedPart
+        ? `${task.assignedPart.name} (${task.assignedPart.qty} шт.)`
+        : "Не назначена"
+    }</p>
+    <div class="calendar-actions"></div>
+`;
       const actions = card.querySelector(".calendar-actions");
 
+      // --- ЛОГИКА КНОПОК (без изменений) ---
       if (type === "active") {
         if (!task.executor) {
           const assignBtn = document.createElement("button");
@@ -302,11 +338,10 @@ function loadCalendarTasks() {
         };
         actions.appendChild(deleteBtn);
       }
-      container.appendChild(card);
+      container.appendChild(card);  
     });
   }
-
-  function loadRequests() {
+function loadRequests() {
     const container = document.getElementById("requestCards");
     container.innerHTML = "";
     fetch('/api/new-requests')
@@ -316,19 +351,32 @@ function loadCalendarTasks() {
           container.innerHTML = "<p>Нет заявок на обслуживание.</p>";
           return;
         }
+
+        // Сортируем данные перед циклом forEach
+        data.sort(sortByPriority);
+
         data.forEach(task => {
+          let priorityClass = 'priority-default';
+          const p = (task.priority || "").toLowerCase();
+          if (p === 'высокий') priorityClass = 'priority-high';
+          else if (p === 'средний') priorityClass = 'priority-medium';
+          else if (p === 'низкий') priorityClass = 'priority-low';
+
           const card = document.createElement("div");
           card.className = "request-card";
           card.innerHTML = `
             <h3>${task.name}</h3>
             <p><strong>Статус:</strong> ${task.type}</p>
             <p><strong>Дата заявки:</strong> ${task.deadline}</p>
+            <p><strong>Приоритет:</strong> <span class="priority-badge ${priorityClass}">${task.priority || 'не указан'}</span></p>
             <p><strong>Описание:</strong> ${task.description}</p>
           `;
+          
           const button = document.createElement("button");
           button.className = "action-btn";
           button.textContent = "Рассмотреть заявку";
           button.onclick = () => openModal(task);
+          
           card.appendChild(button);
           container.appendChild(card);
         });
@@ -336,8 +384,7 @@ function loadCalendarTasks() {
       .catch(() => {
         container.innerHTML = "<p>Ошибка при загрузке заявок.</p>";
       });
-  }
-
+}
   function openModal(task) {
     currentTask = task;
     
@@ -437,73 +484,69 @@ function loadCalendarTasks() {
   });
 
 function openAssignModal(task) {
-    console.log("ВЕСЬ ОБЪЕКТ ТАСКА:", task);
     currentTask = task;
     const modal = document.getElementById("assignModalOverlay");
     const list = document.getElementById("mastersList");
     list.innerHTML = "<p style='padding:20px;'>Загрузка мастеров...</p>";
 
-    const fullText = task.description || task.problem || ""; 
-    
-    // 1. Находим ВСЕ теги в квадратных скобках и переводим в нижний регистр
-    const allTags = [...fullText.matchAll(/\[(.*?)\]/g)].map(match => match[1].trim().toLowerCase());
-
-    console.log("Текст заявки:", fullText);
-    console.log("Все найденные теги:", allTags); // Теперь здесь будет ["общее", "mechanic"]
+    const fullText = (task.description || task.problem || "").toLowerCase();
+    // Находим теги в [ ]
+    const allTags = [...fullText.matchAll(/\[(.*?)\]/g)].map(match => match[1].trim());
 
     fetch("/api/masters")
         .then(res => res.json())
         .then(data => {
-            list.innerHTML = ""; 
+            list.innerHTML = "";
             
+            // Если тегов нет, возможно, стоит разрешить всех или вывести предупреждение
+            if (allTags.length === 0) {
+                list.innerHTML = "<p style='padding:20px; color: #ef4444;'>В описании заявки не указаны теги квалификации [ ]!</p>";
+                return;
+            }
+
             data.forEach(master => {
-                const item = document.createElement("div");
-                const isOverloaded = master.active_tasks_count >= 3;
                 const masterSpec = (master.specialty || "").toLowerCase();
+                // Проверяем соответствие мастера хотя бы одному тегу
+                const isMatched = allTags.some(tag => masterSpec.includes(tag));
+                const isOverloaded = master.active_tasks_count >= 3;
 
-                // 2. ПРОВЕРКА: совпадает ли специальность мастера ХОТЯ БЫ с одним тегом
-                const isRecommended = allTags.some(tag => masterSpec.includes(tag));
-
-                item.className = `master-item ${isRecommended ? 'recommended' : ''} ${isOverloaded ? 'overloaded' : ''}`;
-                
-                if (isRecommended && !isOverloaded) {
-                    item.style.borderLeft = "5px solid #3b82f6";
-                    item.style.backgroundColor = "#f0f7ff";
+                // Создаем элемент, только если мастер подходит под фильтр
+                // Если нужно совсем скрыть неподходящих — используем условие ниже
+                if (isMatched) {
+                    const item = document.createElement("div");
+                    item.className = `master-item matched ${isOverloaded ? 'overloaded' : ''}`;
+                    
+                    item.innerHTML = `
+                        <label class="master-label">
+                            <input type="checkbox" value="${master.id}" ${isOverloaded ? 'disabled' : ''}>
+                            <div class="master-info">
+                                <div class="master-name">
+                                    ${master.name}
+                                    ${isOverloaded ? '<span class="badge-limit">ЗАНЯТ (3/3)</span>' : '<span class="badge-rec" style="background:#22c55e; color:white; padding:2px 8px; border-radius:10px; font-size:10px;">ПОДХОДИТ</span>'}
+                                </div>
+                                <div class="master-sub">
+                                    <i class="fas fa-tools"></i> ${master.specialty || "Общий профиль"} 
+                                    <span class="task-count">Загрузка: ${master.active_tasks_count}/3</span>
+                                </div>
+                            </div>
+                        </label>
+                    `;
+                    list.appendChild(item);
                 }
-
-                // ... далее твой innerHTML без изменений ...
-
-                item.innerHTML = `
-                    <label class="master-label">
-                        <input type="checkbox" value="${master.id}" ${isOverloaded ? 'disabled' : ''}>
-                        <div class="master-info">
-                            <div class="master-name">
-                                ${master.name}
-                                ${isRecommended && !isOverloaded ? '<span class="badge-rec" style="background:#3b82f6; color:white; padding:2px 8px; border-radius:10px; font-size:10px;">РЕКОМЕНДУЕМ</span>' : ''}
-                                ${isOverloaded ? '<span class="badge-limit">ЗАНЯТ (3/3)</span>' : ''}
-                            </div>
-                            <div class="master-sub">
-                                <i class="fas fa-tools"></i> ${master.specialty || "Общий профиль"} 
-                                <span class="task-count">Загрузка: ${master.active_tasks_count}/3</span>
-                            </div>
-                        </div>
-                    </label>
-                `;
-                list.appendChild(item);
             });
-        })
-        .catch(err => {
-            console.error("Ошибка:", err);
-            list.innerHTML = "<p>Ошибка загрузки.</p>";
+
+            // Проверка: если после фильтрации список пуст
+            if (list.innerHTML === "") {
+                list.innerHTML = `<p style='padding:20px;'>Нет свободных мастеров со специальностью: <b>${allTags.join(", ")}</b></p>`;
+            }
         });
         
     modal.classList.remove("hidden");
 
-    // Обработчик сохранения (остается прежним)
     document.getElementById("saveAssignBtn").onclick = () => {
         const selected = Array.from(list.querySelectorAll("input:checked")).map(cb => cb.value);
         if (selected.length === 0) {
-            alert("Выберите мастера");
+            alert("Необходимо выбрать подходящего специалиста");
             return;
         }
         fetch(`/api/assign-masters/${currentTask.id}`, {

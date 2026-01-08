@@ -20,6 +20,12 @@
           <li><a href="{{ url_for('client.equipment_registry') }}"><i class="fas fa-database"></i> Инвентарь</a></li>
           <li class="active"><a href="{{ url_for('admin.masters') }}"><i class="fas fa-user-shield"></i> Мастера</a></li>
           <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-line"></i> Отчёты</a></li>
+          <hr style="margin: 20px 0; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <li class="logout-item">
+              <a href="{{ url_for('admin.logout') }}" class="logout-link" style="color: #fda4af !important;">
+                <i class="fas fa-sign-out-alt"></i> <span>Выйти из системы</span>
+              </a>
+            </li>
         </ul>
       </nav>
     </aside>
@@ -87,13 +93,52 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     let editingMasterId = null;
+    
+    // Инициализация элементов
     const modal = document.getElementById("masterModalOverlay");
     const openBtn = document.getElementById("openMasterModal");
     const closeBtn = document.getElementById("closeMasterModal");
     const saveBtn = document.getElementById("saveMasterBtn");
     const container = document.getElementById("mastersContainer");
+    const phoneInput = document.getElementById("assignNumber");
 
-    // Открытие модалки для добавления
+    // --- 1. Функция форматирования для карточек и инпутов ---
+    function formatPhone(phone) {
+        if (!phone) return "—";
+        // Оставляем только последние 9 цифр (тело номера)
+        let d = phone.replace(/\D/g, "").slice(-9); 
+        
+        if (d.length === 9) {
+            return `+375 (${d.slice(0, 2)}) ${d.slice(2, 5)}-${d.slice(5, 7)}-${d.slice(7, 9)}`;
+        }
+        return phone; 
+    }
+
+    // --- 2. Живая маска при вводе в модалке ---
+    phoneInput.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/\D/g, "");
+        
+        // Отсекаем префиксы, если пользователь начал вводить код страны вручную
+        if (value.startsWith("375")) value = value.slice(3);
+        else if (value.startsWith("80")) value = value.slice(2);
+        
+        value = value.slice(0, 9); // Лимит — 9 цифр номера
+        
+        let result = "";
+        if (value.length > 0) result = "+375 (" + value.slice(0, 2);
+        if (value.length > 2) result += ") " + value.slice(2, 5);
+        if (value.length > 5) result += "-" + value.slice(5, 7);
+        if (value.length > 7) result += "-" + value.slice(7, 9);
+        
+        e.target.value = value ? result : "";
+    });
+
+    // Убираем красную рамку при начале ввода
+    document.querySelectorAll("#masterModalOverlay input").forEach(input => {
+        input.addEventListener("input", () => input.classList.remove("invalid"));
+    });
+
+    // Открытие модалки
     openBtn.addEventListener("click", () => {
         editingMasterId = null;
         clearModal();
@@ -101,30 +146,67 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.classList.remove("hidden");
     });
 
-    // Закрытие модалки 
-    closeBtn.addEventListener("click", () => {
-        modal.classList.add("hidden");
-    });
+    closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
 
     function clearModal() {
         document.getElementById("masterName").value = "";
         document.getElementById("masterSpecialty").value = ""; 
-        document.getElementById("assignNumber").value = "";
+        phoneInput.value = "";
         document.getElementById("masterComment").value = "";
+        document.querySelectorAll(".invalid").forEach(el => el.classList.remove("invalid"));
     }
 
-    // Сохранение данных
-    saveBtn.addEventListener("click", () => {
+    // --- 3. Сохранение данных ---
+    saveBtn.addEventListener("click", async () => {
+        const nameInput = document.getElementById("masterName");
+        const specialtyInput = document.getElementById("masterSpecialty");
+        const commentInput = document.getElementById("masterComment");
+
+        // Проверка длины маски (+375 (XX) XXX-XX-XX = 19 символов)
+        const isPhoneValid = phoneInput.value.length === 19;
+        const validCodes = ["25", "29", "33", "44"];
+        // Извлекаем код из маски (символы на позиции 7 и 8 в строке "+375 (XX...")
+        const currentCode = phoneInput.value.substring(6, 8);
+        const isCodeValid = validCodes.includes(currentCode);
+        let hasError = false;
+        if (!nameInput.value.trim()) { nameInput.classList.add("invalid"); hasError = true; }
+        if (!specialtyInput.value.trim()) { specialtyInput.classList.add("invalid"); hasError = true; }
+        if (!isPhoneValid) { phoneInput.classList.add("invalid"); hasError = true; }
+
+        if (hasError) {
+            alert("Пожалуйста, заполните все поля корректно!");
+            return;
+        }
+        if (!isCodeValid) {
+            phoneInput.classList.add("invalid");
+            alert("Ошибка: Неверный код оператора! Допустимы только 25, 29, 33, 44.");
+            return;
+        }
         const payload = {
-            name: document.getElementById("masterName").value.trim(),
-            specialty: document.getElementById("masterSpecialty").value.trim(),
-            phone: document.getElementById("assignNumber").value.trim(),
-            comment: document.getElementById("masterComment").value.trim()
+            name: nameInput.value.trim(),
+            specialty: specialtyInput.value.trim(),
+            phone: phoneInput.value.trim(), // Сохраняем уже отформатированный номер
+            comment: commentInput.value.trim()
         };
 
-        if (!payload.name || !payload.specialty) {
-            alert("Пожалуйста, заполните основные поля (ФИО и Специализация)");
-            return;
+        // Проверка на дубликаты
+        try {
+            const response = await fetch("/api/masters");
+            const allMasters = await response.json();
+
+            const duplicate = allMasters.find(m => {
+                const isSameName = m.name.toLowerCase() === payload.name.toLowerCase();
+                // Сравниваем только цифры для точности
+                const isSamePhone = m.phone.replace(/\D/g, "").slice(-9) === payload.phone.replace(/\D/g, "").slice(-9);
+                return (isSameName || isSamePhone) && m.id !== editingMasterId;
+            });
+
+            if (duplicate) {
+                alert(`Ошибка: Мастер с таким именем или номером телефона уже существует.`);
+                return;
+            }
+        } catch (e) {
+            console.error("Ошибка проверки:", e);
         }
 
         const url = editingMasterId ? `/api/update-master/${editingMasterId}` : "/api/add-master";
@@ -135,117 +217,96 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify(payload)
         })
         .then(res => {
-            if (!res.ok) throw new Error("Ошибка при сохранении");
+            if (!res.ok) throw new Error("Ошибка сервера");
             return res.json();
         })
         .then(() => {
             editingMasterId = null;
-            modal.classList.add("hidden");
+            modal.classList.add("hidden");  
             loadMasters(); 
         })
         .catch(err => alert("Не удалось сохранить: " + err.message));
     });
 
-    // Функция загрузки списка
-function loadMasters() {
-    container.innerHTML = "<p class='loading'>Синхронизация с реестром...</p>";
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const recommendTag = urlParams.get('recommend_for')?.toLowerCase(); 
+    // --- 4. Загрузка и отрисовка списка ---
+    function loadMasters() {
+        container.innerHTML = "<p class='loading'>Синхронизация с реестром...</p>";
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const recommendTag = urlParams.get('recommend_for')?.toLowerCase(); 
 
-    fetch("/api/masters")
-        .then(res => {
-            if (!res.ok) throw new Error("Ошибка сервера");
-            return res.json();
-        })
-        .then(data => {
-            container.innerHTML = ""; 
+        fetch("/api/masters")
+            .then(res => res.json())
+            .then(data => {
+                container.innerHTML = ""; 
 
-            if (!Array.isArray(data) || data.length === 0) {
-                container.innerHTML = "<p class='empty-msg'>Реестр пуст. Добавьте первого мастера.</p>";
-                return;
-            }
-
-            // === 1. СОРТИРОВКА ===
-            // Рекомендованные мастера (у которых specialty совпадает с тегом) идут первыми
-            data.sort((a, b) => {
-                const specA = (a.specialty || "").toLowerCase();
-                const specB = (b.specialty || "").toLowerCase();
-                const isARec = recommendTag && specA === recommendTag;
-                const isBRec = recommendTag && specB === recommendTag;
-                return (isBRec === isARec) ? 0 : isARec ? -1 : 1;
-            });
-
-            // === 2. ОТРИСОВКА ===
-            data.forEach(master => {
-                try {
-                    const card = document.createElement("div");
-                    card.className = "master-card";
-                    
-                    const masterSpec = (master.specialty || "").toLowerCase();
-                    // Прямое сравнение: тег "energy" == специальность "energy"
-                    const isRecommended = recommendTag && masterSpec.includes(recommendTag);
-                    if (isRecommended) {
-                        card.classList.add("recommended-card");
-                    }
-
-                    card.innerHTML = `
-                        ${isRecommended ? `
-                            <div class="recommend-badge">
-                                <i class="fas fa-star"></i> РЕКОМЕНДУЕМ ДЛЯ [${recommendTag.toUpperCase()}]
-                            </div>` : ''}
-                        <h3>${master.name || "Без имени"}</h3>
-                        <div class="master-info">
-                            <div class="info-row">
-                                <i class="fas fa-briefcase"></i> 
-                                <span>${master.specialty || "Не указана"}</span>
-                            </div>
-                            <div class="info-row">
-                                <i class="fas fa-phone-alt"></i> 
-                                <span>${master.phone || "—"}</span>
-                            </div>
-                            <div class="info-row">
-                                <i class="fas fa-sticky-note"></i> 
-                                <span>${master.comment || "—"}</span>
-                            </div>
-                            <div class="info-row status-row">
-                                <i class="fas fa-tasks"></i>
-                                <span>Загрузка: <strong class="${(master.active_tasks_count >= 3) ? 'text-danger' : ''}">${master.active_tasks_count || 0}/3</strong></span>
-                            </div>
-                        </div>
-                        <div class="master-actions">
-                            <button class="info-btn"><i class="fas fa-edit"></i> Редактировать</button>
-                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
-                        </div>
-                    `;
-
-                    // Привязка событий (Удаление/Редактирование)
-                    card.querySelector(".delete-btn").addEventListener("click", () => {
-                        if (confirm(`Удалить мастера ${master.name}?`)) {
-                            fetch(`/api/delete-master/${master.id}`, { method: "POST" }).then(() => loadMasters());
-                        }
-                    });
-
-                    card.querySelector(".info-btn").addEventListener("click", () => {
-                        editingMasterId = master.id;
-                        document.getElementById("masterName").value = master.name;
-                        document.getElementById("masterSpecialty").value = master.specialty;
-                        document.getElementById("assignNumber").value = master.phone;
-                        document.getElementById("masterComment").value = master.comment || "";
-                        document.getElementById("modalTitle").textContent = "Редактировать мастера";
-                        modal.classList.remove("hidden");
-                    });
-
-                    container.appendChild(card);
-                } catch (err) {
-                    console.error("Ошибка карточки:", err);
+                if (!data || data.length === 0) {
+                    container.innerHTML = "<p class='empty-msg'>Реестр пуст.</p>";
+                    return;
                 }
+
+                // Сортировка (рекомендованные выше)
+                data.sort((a, b) => {
+                    const isARec = recommendTag && (a.specialty || "").toLowerCase().includes(recommendTag);
+                    const isBRec = recommendTag && (b.specialty || "").toLowerCase().includes(recommendTag);
+                    return isBRec - isARec;
+                });
+
+data.forEach(master => {
+    const card = document.createElement("div");
+    card.className = "master-card";
+    
+    const isRecommended = recommendTag && (master.specialty || "").toLowerCase().includes(recommendTag);
+    if (isRecommended) card.classList.add("recommended-card");
+
+    card.innerHTML = `
+        ${isRecommended ? `<div class="recommend-badge"><i class="fas fa-star"></i> РЕКОМЕНДУЕМ</div>` : ''}
+        <h3>${master.name || "Без имени"}</h3>
+        <div class="master-info">
+            <div class="info-row"><i class="fas fa-briefcase"></i> <span>${master.specialty || "—"}</span></div>
+            <div class="info-row"><i class="fas fa-phone-alt"></i> <span>${formatPhone(master.phone)}</span></div>
+            <div class="info-row"><i class="fas fa-sticky-note"></i> <span>${master.comment || "—"}</span></div>
+            <div class="info-row status-row">
+                <i class="fas fa-tasks"></i>
+                <span>Загрузка: <strong class="${master.active_tasks_count >= 3 ? 'text-danger' : ''}">${master.active_tasks_count || 0}/3</strong></span>
+            </div>
+        </div>
+        <div class="master-actions">
+            <button class="btn-edit-master">
+                <i class="fas fa-pen"></i> Редактировать
+            </button>
+            <button class="delete-btn" title="Удалить">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+
+    // Логика редактирования (теперь только одна)
+    card.querySelector(".btn-edit-master").onclick = () => {
+        editingMasterId = master.id;
+        document.getElementById("masterName").value = master.name;
+        document.getElementById("masterSpecialty").value = master.specialty;
+        phoneInput.value = formatPhone(master.phone);
+        document.getElementById("masterComment").value = master.comment || "";
+        document.getElementById("modalTitle").textContent = "Редактировать мастера";
+        modal.classList.remove("hidden");
+    };
+
+    // Удаление
+    card.querySelector(".delete-btn").onclick = () => {
+        if (confirm(`Удалить мастера ${master.name}?`)) {
+            fetch(`/api/delete-master/${master.id}`, { method: "POST" }).then(() => loadMasters());
+        }
+    };
+
+    container.appendChild(card);
+});
+            })
+            .catch(err => {
+                container.innerHTML = `<p class='error-msg'>Ошибка: ${err.message}</p>`;
             });
-        })
-        .catch(err => {
-            container.innerHTML = `<p class='error-msg'>Ошибка: ${err.message}</p>`;
-        });
-}
+    }
+
     loadMasters();
 });
 </script>
