@@ -1,119 +1,73 @@
-/* Подключаем современный и читабельный шрифт */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --primary: #3b82f6;          /* Основной синий */
-  --bg-body: #f1f5f9;         /* Светло-серый фон страницы */
-  --sidebar-bg: #ffffff;      /* Белый сайдбар */
-  --card-bg: #ffffff;         /* Белые карточки */
-  --text-main: #1e293b;       /* Почти черный текст */
-  --text-muted: #64748b;      /* Приглушенный серый текст */
-  --border: #e2e8f0;          /* Тонкие границы */
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --primary: #3b82f6;
+  --bg-body: #f1f5f9;
+  --sidebar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --danger: #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* --- ОБЩИЕ СТИЛИ --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   background-color: var(--bg-body);
   color: var(--text-main);
   line-height: 1.5;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
+.container { display: flex; min-height: 100vh; }
 
-/* --- КОНТЕЙНЕР --- */
-.container {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* --- САЙДБАР (Светлый) --- */
+/* --- САЙДБАР --- */
 .sidebar {
   width: 260px;
   background-color: var(--sidebar-bg);
   border-right: 1px solid var(--border);
   padding: 32px 20px;
-  display: flex;
-  flex-direction: column;
+  position: fixed;
+  height: 100vh;
 }
-
-.logo {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
-.subtitle {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 500;
-  margin-bottom: 40px;
-}
-
+.logo { font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 40px; }
 .menu ul { list-style: none; }
-
-.menu li {
-  margin-bottom: 4px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
+.menu li { margin-bottom: 4px; border-radius: 8px; }
 .menu li a {
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 500;
-  color: var(--text-muted);
-  font-size: 14px;
+  padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+  font-weight: 500; color: var(--text-muted); font-size: 14px; text-decoration: none;
+}
+.menu li:hover, .menu li.active { background-color: #eff6ff; }
+.menu li:hover a, .menu li.active a { color: var(--primary); font-weight: 600; }
+
+/* --- ОСНОВНАЯ ПАНЕЛЬ --- */
+.dashboard { flex: 1; margin-left: 260px; padding: 32px 40px; }
+.top-bar { margin-bottom: 32px; }
+.top-bar h2 { font-size: 24px; font-weight: 700; }
+/* Стили для кнопки выхода */
+.logout-item {
+    margin-top: 210px; /* Отступ от основного меню */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.menu li:hover {
-  background-color: #f8fafc;
+.logout-link {
+    color: #ff4d4d !important; /* Красный цвет текста */
+    transition: all 0.3s ease;
 }
 
-.menu li:hover a {
-  color: var(--primary);
+.logout-link:hover {
+    background-color: rgba(255, 77, 77, 0.1) !important;
+    padding-left: 25px !important; /* Эффект смещения при наведении */
 }
 
-.menu li.active {
-  background-color: #eff6ff;
+.logout-link i {
+    color: #ff4d4d;
 }
-
-.menu li.active a {
-  color: var(--primary);
-  font-weight: 600;
-}
-
-/* --- ОСНОВНАЯ ОБЛАСТЬ --- */
-.dashboard {
-  flex: 1;
-  padding: 32px 40px;
-}
-
-.top-bar {
-  margin-bottom: 32px;
-}
-
-.top-bar h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
 /* --- СЕТКА КАРТОЧЕК --- */
 .task-section {
   display: grid;

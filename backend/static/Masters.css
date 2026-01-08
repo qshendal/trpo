@@ -63,6 +63,24 @@ body {
 }
 .top-bar h2 { font-size: 24px; font-weight: 700; }
 
+.logout-item {
+    margin-top: 210px; /* Отступ от основного меню */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-link {
+    color: #ff4d4d !important; /* Красный цвет текста */
+    transition: all 0.3s ease;
+}
+
+.logout-link:hover {
+    background-color: rgba(255, 77, 77, 0.1) !important;
+    padding-left: 25px !important; /* Эффект смещения при наведении */
+}
+
+.logout-link i {
+    color: #ff4d4d;
+}
 
 .assign-btn {
   padding: 10px 18px;
@@ -78,7 +96,51 @@ body {
   gap: 8px;
   transition: 0.2s;
 }
+/* Основной стиль кнопки Редактировать */
+.btn-edit-master {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: #f0f4ff; /* Светлый фон */
+    color: #4f46e5;      /* Индиго текст */
+    border: 1.5px solid #e0e7ff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
 
+/* Эффект при наведении */
+.btn-edit-master:hover {
+    background: #4f46e5;
+    color: white;
+    border-color: #4f46e5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Иконка внутри кнопки */
+.btn-edit-master i {
+    font-size: 13px;
+}
+
+/* Кнопка удаления для контраста */
+.delete-btn {
+    background: #fff5f5;
+    color: #ef4444;
+    border: 1px solid #fee2e2;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.delete-btn:hover {
+    background: #ef4444;
+    color: white;
+}
 .assign-btn:hover { background-color: #2563eb; transform: translateY(-1px); }
 
 /* --- КОМПАКТНЫЕ КАРТОЧКИ --- */
