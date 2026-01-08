@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, session, redirect, url_for
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -17,3 +17,8 @@ def masters():
 @admin_bp.route("/planning")
 def work_planning():
     return render_template("planning.html")
+
+@admin_bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
