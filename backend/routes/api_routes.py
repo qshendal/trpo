@@ -282,6 +282,7 @@ def api_calendar_tasks():
                 priority_map = {"высокий": "Высокий", "средний": "Средний", "низкий": "Низкий"}
                 priority_text = priority_map.get(priority.lower(), "Не задан")
 
+                # проверяем детали
                 cur2 = conn.cursor()
                 cur2.execute("""
                     SELECT p.название, up.количество
@@ -307,17 +308,19 @@ def api_calendar_tasks():
                     "assignedPart": assigned_part,
                     "users_id": row["users_id"],
                     "type": row["статус"],
-                    "description": row["описание_проблемы"]  # <--- ВОТ ЭТУ СТРОКУ НУЖНО ДОБАВИТЬ!
+                    "description": row["описание_проблемы"]
                 })
         return tasks
 
     result = {
         "active": fetch_tasks("в работе"),
         "awaiting_payment": fetch_tasks(["в ожидании оплаты", "оплачено"]),
-        "completed": fetch_tasks("завершена")
+        "completed": fetch_tasks("завершена"),
+        "archived": fetch_tasks("архив")   # <--- добавляем архивные заявки
     }
 
     return jsonify(result)
+
 
 
 # Маршрут API для добавления новой детали в базу данных
@@ -971,15 +974,33 @@ def maintenance_report():
 
 
 
+@api_bp.route("/archive-task/<int:request_id>", methods=["POST"])
+def archive_task(request_id):
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            UPDATE service_request
+            SET статус = 'архив'
+            WHERE id = ?
+        """, (request_id,))
+
+        conn.commit()
+        return {"message": "Задача перемещена в архив"}, 200
+    except Exception as e:
+        conn.rollback()
+        print("Ошибка при архивации:", e)
+        return {"error": str(e)}, 500
+    finally:
+        conn.close()
+
 @api_bp.route("/delete-task/<int:request_id>", methods=["DELETE"])
 def delete_task(request_id):
     conn = get_db()
     cur = conn.cursor()
     try:
         cur.execute("DELETE FROM used_parts WHERE service_request_id = ?", (request_id,))
-
         cur.execute("DELETE FROM service_request WHERE id = ?", (request_id,))
-
         conn.commit()
         return "", 204
     except Exception as e:
@@ -988,6 +1009,7 @@ def delete_task(request_id):
         return {"error": str(e)}, 500
     finally:
         conn.close()
+
 
 @api_bp.route("/work-log/<int:request_id>")
 def get_work_log(request_id):
