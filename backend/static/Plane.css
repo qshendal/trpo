@@ -426,6 +426,21 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     margin-top: 40px;
 }
 
+/* Скрытое состояние */
+.history-section .task-grid {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease, opacity 0.5s ease;
+}
+
+/* Раскрытое состояние */
+.history-section.expanded .task-grid {
+  max-height: 1000px; /* достаточно большое значение, чтобы вместить все карточки */
+  opacity: 1;
+}
+
+
 .history-title {
     color: #64748b;
     font-size: 1.1rem;
