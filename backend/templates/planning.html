@@ -201,23 +201,33 @@ function loadCalendarTasks() {
     fetch('/api/calendar-tasks')
       .then(res => res.json())
       .then(data => {
-        // Сортируем активные задачи
+        // Сортируем активные задачи по приоритету
         const sortedActive = (data.active || []).sort(sortByPriority);
+
         // Сортируем задачи в ожидании оплаты
         const sortedAwaiting = (data.awaiting_payment || []).sort(sortByPriority);
-        // Историю обычно не сортируют по приоритету (там важнее дата), но если нужно:
+
+        // Сортируем завершённые задачи
         const sortedCompleted = (data.completed || []).sort(sortByPriority);
 
+        // Сортируем архивные задачи (по дате, чтобы история была хронологична)
+        const sortedArchived = (data.archived || []).sort(
+          (a, b) => new Date(b.deadline) - new Date(a.deadline)
+        );
+
+        // Рендерим секции
         renderTasks(sortedActive, document.getElementById("calendarTasks"), "active");
         renderTasks(sortedAwaiting, document.getElementById("awaitingPaymentTasks"), "awaiting_payment");
-        
-        const completedContainer = document.getElementById("completedTasks");
-        if (completedContainer) {
-            renderTasks(sortedCompleted, completedContainer, "completed");
+        renderTasks(sortedCompleted, document.getElementById("completedTasks"), "completed");
+
+        const historyContainer = document.getElementById("historyTasks");
+        if (historyContainer) {
+          renderTasks(sortedArchived, historyContainer, "archived");
         }
       })
-      .catch(err => console.error("Ошибка загрузки истории:", err));
+      .catch(err => console.error("Ошибка загрузки задач:", err));
 }
+
 function renderTasks(tasks, container, type) {
     container.innerHTML = "";
     if (!Array.isArray(tasks) || tasks.length === 0) {
@@ -226,36 +236,32 @@ function renderTasks(tasks, container, type) {
     }
 
     tasks.forEach(task => {
-      // 1. ОПРЕДЕЛЯЕМ ЦВЕТ ПРИОРИТЕТА
+      // Определяем цвет приоритета
       let priorityClass = 'priority-default';
       const p = (task.priority || "").toLowerCase();
-
       if (p === 'высокий') priorityClass = 'priority-high';
       else if (p === 'средний') priorityClass = 'priority-medium';
       else if (p === 'низкий') priorityClass = 'priority-low';
 
       const card = document.createElement("div");
       card.className = "calendar-card";
-      
-      // 2. ФОРМИРУЕМ HTML (Приоритет перенесен после исполнителя)
-// Находишь внутри renderTasks место, где формируется card.innerHTML
-card.innerHTML = `
-    <h3>${task.name}</h3>
-    <p><strong>Дата заявки:</strong> ${task.deadline}</p>
-    <p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>
-    
-    <p><strong>Приоритет:</strong> <span class="priority-badge ${priorityClass}">${task.priority || 'не указан'}</span></p>
-    
-    <p><strong>Деталь:</strong> ${
-      task.assignedPart
-        ? `${task.assignedPart.name} (${task.assignedPart.qty} шт.)`
-        : "Не назначена"
-    }</p>
-    <div class="calendar-actions"></div>
-`;
+
+      card.innerHTML = `
+        <h3>${task.name}</h3>
+        <p><strong>Дата заявки:</strong> ${task.deadline}</p>
+        <p><strong>Исполнитель:</strong> ${task.executor || "Не назначен"}</p>
+        <p><strong>Приоритет:</strong> <span class="priority-badge ${priorityClass}">${task.priority || 'не указан'}</span></p>
+        <p><strong>Деталь:</strong> ${
+          task.assignedPart
+            ? `${task.assignedPart.name} (${task.assignedPart.qty} шт.)`
+            : "Не назначена"
+        }</p>
+        <div class="calendar-actions"></div>
+      `;
+
       const actions = card.querySelector(".calendar-actions");
 
-      // --- ЛОГИКА КНОПОК (без изменений) ---
+      // --- Логика кнопок ---
       if (type === "active") {
         if (!task.executor) {
           const assignBtn = document.createElement("button");
@@ -327,20 +333,37 @@ card.innerHTML = `
         badge.textContent = "Завершено";
         actions.appendChild(badge);
 
+        const archiveBtn = document.createElement("button");
+        archiveBtn.className = "archive-btn";
+        archiveBtn.textContent = "Переместить в историю";
+        archiveBtn.onclick = () => {
+          fetch(`/api/archive-task/${task.id}`, { method: "POST" })
+            .then(() => loadCalendarTasks());
+        };
+        actions.appendChild(archiveBtn);
+      }
+      else if (type === "archived") {
+        const badge = document.createElement("span");
+        badge.className = "status-badge archived";
+        badge.textContent = "В архиве";
+        actions.appendChild(badge);
+
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "delete-btn";
-        deleteBtn.textContent = "Удалить";
+        deleteBtn.textContent = "Удалить навсегда";
         deleteBtn.onclick = () => {
-          if (confirm("Удалить эту задачу и все связанные данные?")) {
+          if (confirm("Удалить задачу окончательно?")) {
             fetch(`/api/delete-task/${task.id}`, { method: "DELETE" })
               .then(() => loadCalendarTasks());
           }
         };
         actions.appendChild(deleteBtn);
       }
-      container.appendChild(card);  
+
+      container.appendChild(card);
     });
-  }
+}
+
 function loadRequests() {
     const container = document.getElementById("requestCards");
     container.innerHTML = "";
@@ -352,7 +375,6 @@ function loadRequests() {
           return;
         }
 
-        // Сортируем данные перед циклом forEach
         data.sort(sortByPriority);
 
         data.forEach(task => {
@@ -388,7 +410,6 @@ function loadRequests() {
   function openModal(task) {
     currentTask = task;
     
-    // Безопасное заполнение: если элемента нет в HTML, код не упадет
     const setText = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.textContent = val || "";
@@ -606,6 +627,20 @@ function openPartsModal(task) {
     fetch(`/api/complete-task/${id}`, { method: "POST" })
       .then(() => loadCalendarTasks());
   }
+
+  document.addEventListener("DOMContentLoaded", () => {
+  activateTab("calendar");
+
+  // обработчик для разворачивания истории
+  const historySection = document.querySelector(".history-section");
+  const historyTitle = document.querySelector(".history-title");
+  if (historySection && historyTitle) {
+    historyTitle.addEventListener("click", () => {
+      historySection.classList.toggle("expanded");
+    });
+  }
+});
+
 </script>
 </body>
 </html>
