@@ -588,20 +588,27 @@ function openPartsModal(task) {
     currentTask = task;
     const modal = document.getElementById("partsModalOverlay");
     const list = document.getElementById("partsList");
-    list.innerHTML = "";
+    list.innerHTML = "<p style='padding:20px; text-align:center;'>Загрузка склада...</p>";
 
     fetch("/api/parts_en")
       .then(res => res.json())
       .then(data => {
+        list.innerHTML = "";
         data.forEach(part => {
+          const isOutOfStock = (part.quantity || 0) <= 0;
           const item = document.createElement("div");
-          item.className = "part-item";
+          
+          item.className = `part-item ${isOutOfStock ? 'out-of-stock' : ''}`;
+          
           item.innerHTML = `
-            <label>
-              <input type="radio" name="partSelect" value="${part.id}">
+            <label class="part-label">
+              <input type="radio" name="partSelect" value="${part.id}" ${isOutOfStock ? 'disabled' : ''}>
               <div class="item-info">
                 <span class="item-name">${part.name}</span>
-                <span class="item-sub"><i class="fas fa-boxes"></i> В наличии: <strong>${part.quantity} шт.</strong></span>
+                <span class="item-sub">Артикул: ${part.article || 'н/д'}</span>
+              </div>
+              <div class="stock-badge">
+                ${isOutOfStock ? 'Нет' : part.quantity + ' шт.'}
               </div>
             </label>
           `;
@@ -609,23 +616,8 @@ function openPartsModal(task) {
         });
       });
 
-    document.getElementById("savePartsBtn").onclick = () => {
-      const selected = document.querySelector("input[name='partSelect']:checked");
-      if (!selected) {
-        alert("Выберите деталь перед сохранением.");
-        return;
-      }
-      fetch(`/api/assign-part/${currentTask.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ part_id: selected.value })
-      }).then(() => {
-        modal.classList.add("hidden");
-        loadCalendarTasks();
-      });
-    };
     modal.classList.remove("hidden");
-  }
+}
 
   function completeTask(id) {
     fetch(`/api/complete-task/${id}`, { method: "POST" })
