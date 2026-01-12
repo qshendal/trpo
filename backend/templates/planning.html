@@ -508,46 +508,50 @@ function openAssignModal(task) {
     currentTask = task;
     const modal = document.getElementById("assignModalOverlay");
     const list = document.getElementById("mastersList");
-    list.innerHTML = "<p style='padding:20px;'>Загрузка мастеров...</p>";
+    list.innerHTML = "<p style='padding:20px; text-align:center;'>Загрузка мастеров...</p>";
 
-    const fullText = (task.description || task.problem || "").toLowerCase();
-    // Находим теги в [ ]
-    const allTags = [...fullText.matchAll(/\[(.*?)\]/g)].map(match => match[1].trim());
+    // Извлекаем описание и ищем теги [ ]
+    const description = (task.description || "").toLowerCase();
+    const allTags = [...description.matchAll(/\[(.*?)\]/g)].map(match => match[1].trim());
+    
+    // ПРОВЕРКА: Если в описании есть слово "general" или тегов вообще нет
+    const isGeneralMode = allTags.length === 0 || description.includes("general");
 
     fetch("/api/masters")
         .then(res => res.json())
         .then(data => {
             list.innerHTML = "";
-            
-            // Если тегов нет, возможно, стоит разрешить всех или вывести предупреждение
-            if (allTags.length === 0) {
-                list.innerHTML = "<p style='padding:20px; color: #ef4444;'>В описании заявки не указаны теги квалификации [ ]!</p>";
-                return;
-            }
+            console.log("Режим General:", isGeneralMode);
+            console.log("Найдено мастеров в БД:", data.length);
 
             data.forEach(master => {
-                const masterSpec = (master.specialty || "").toLowerCase();
-                // Проверяем соответствие мастера хотя бы одному тегу
-                const isMatched = allTags.some(tag => masterSpec.includes(tag));
-                const isOverloaded = master.active_tasks_count >= 3;
+                const masterSpec = (master.specialty || master.specialization || "").toLowerCase();
+                
+                // ГЛАВНОЕ УСЛОВИЕ: 
+                // Если General — matched всегда true. 
+                // Если нет — ищем совпадение тега со специальностью мастера.
+                const isMatched = isGeneralMode || allTags.some(tag => masterSpec.includes(tag));
+                
+                const isOverloaded = (master.active_tasks_count || 0) >= 3;
 
-                // Создаем элемент, только если мастер подходит под фильтр
-                // Если нужно совсем скрыть неподходящих — используем условие ниже
                 if (isMatched) {
                     const item = document.createElement("div");
-                    item.className = `master-item matched ${isOverloaded ? 'overloaded' : ''}`;
+                    // Если мы в General, класс matched не добавляем (чтобы не было зеленой полоски у всех)
+                    item.className = `master-item ${isOverloaded ? 'overloaded' : ''} ${(!isGeneralMode && isMatched) ? 'matched' : ''}`;
                     
                     item.innerHTML = `
                         <label class="master-label">
                             <input type="checkbox" value="${master.id}" ${isOverloaded ? 'disabled' : ''}>
                             <div class="master-info">
                                 <div class="master-name">
-                                    ${master.name}
-                                    ${isOverloaded ? '<span class="badge-limit">ЗАНЯТ (3/3)</span>' : '<span class="badge-rec" style="background:#22c55e; color:white; padding:2px 8px; border-radius:10px; font-size:10px;">ПОДХОДИТ</span>'}
+                                    <span>${master.name}</span>
+                                    ${isOverloaded 
+                                        ? '<span class="badge-limit">Занят 3/3</span>' 
+                                        : (!isGeneralMode ? '<span class="badge-rec">Подходит</span>' : '<span class="badge-rec" style="background:#64748b">Общий</span>')}
                                 </div>
                                 <div class="master-sub">
-                                    <i class="fas fa-tools"></i> ${master.specialty || "Общий профиль"} 
-                                    <span class="task-count">Загрузка: ${master.active_tasks_count}/3</span>
+                                    <i class="fas fa-tools"></i> ${master.specialty || "Мастер универсал"} 
+                                    <span class="task-count">• Загрузка: ${master.active_tasks_count || 0}/3</span>
                                 </div>
                             </div>
                         </label>
@@ -556,18 +560,18 @@ function openAssignModal(task) {
                 }
             });
 
-            // Проверка: если после фильтрации список пуст
             if (list.innerHTML === "") {
-                list.innerHTML = `<p style='padding:20px;'>Нет свободных мастеров со специальностью: <b>${allTags.join(", ")}</b></p>`;
+                list.innerHTML = `<p style='padding:20px; text-align:center; color:#64748b;'>Мастера не найдены. Проверьте соединение с БД.</p>`;
             }
         });
         
     modal.classList.remove("hidden");
-
+    
+    // Логика кнопки сохранения остается прежней...
     document.getElementById("saveAssignBtn").onclick = () => {
         const selected = Array.from(list.querySelectorAll("input:checked")).map(cb => cb.value);
         if (selected.length === 0) {
-            alert("Необходимо выбрать подходящего специалиста");
+            alert("Выберите хотя бы одного мастера");
             return;
         }
         fetch(`/api/assign-masters/${currentTask.id}`, {
@@ -575,7 +579,7 @@ function openAssignModal(task) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ masters: selected })
         }).then(() => {
-            modal.classList.add("hidden");
+            document.getElementById("assignModalOverlay").classList.add("hidden");
             loadCalendarTasks();
         });
     };
